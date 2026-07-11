@@ -268,13 +268,13 @@ export default function Home() {
         {scene === 5 && (
           <article className={`${lessonClass} browser-scene`}>
             <div className="section-no">04 · BROWSER PLUGIN</div>
-            <div className="statement"><h2>Browser 插件：<br /><span>自动完成网页测试，也能自动编写飞书云文档。</span></h2><p>给它网址、步骤和正确结果，它可以从头跑完整测试并留下证据；测试结束后，还能打开已授权的飞书，把结果整理成正式文档。</p></div>
+            <div className="statement"><h2>Browser 插件：<br /><span>自动完成网页测试，也能自动编写飞书云文档。</span></h2><p>给它网址、步骤和正确结果，它可以从头跑完整测试并留下证据；飞书文档在网页端授权后，把链接复制到 Codex Chrome 插件，它就能进入指定文档继续操作。</p></div>
             <Capability
               className={revealClass(1)}
               revealStep={revealStep}
               purpose="替你完成两类重复工作：全流程网页自动化测试，以及打开飞书编写云文档。"
               when="需要完整验证一条用户流程，或者要把测试和项目结果正式整理进飞书时。"
-              input="测试网址、操作步骤、正确结果；或飞书文档位置、内容结构和已授权的登录状态。"
+              input="测试网址、操作步骤和正确结果；写飞书时，再提供已授权的云文档链接和内容要求。"
               output="自动化测试记录、页面状态与截图，以及已经写入并校对好的飞书云文档。"
             />
             <div className={revealClass(3, "browser-sequence")}>
@@ -286,8 +286,8 @@ export default function Home() {
                 </div>
               </section>
               <section className={revealClass(5, "browser-phase docs-phase")}>
-                <div className="phase-heading"><b>02</b><span><strong>自动编写飞书云文档</strong><small>打开已授权的飞书，创建、排版、填写并校对文档</small></span></div>
-                <div className="docs-compact"><Command title="飞书文档提示词" onCopy={copy}>{"根据刚才的自动化测试结果和资产库数据，打开飞书云文档，创建《仿真资产周报》；填写资产清单、测试结果、风险、负责人和下周计划，完成排版并检查内容是否写入成功。"}</Command><div className="permission-note"><b>只需提前准备</b><span>保持飞书登录，并明确授权 AI 创建或修改目标文档。</span></div><div className="doc-page"><small>仿真资产周报 · Week 28</small><h3>3D Asset Operations</h3><p>本周新增 42 个资产，已审核 31 个，转换失败 3 个。</p><h4>需要关注</h4><div className="doc-table"><span>PUMP-204 <b>自动化测试通过</b></span><span>ROBOT-018 <b>待审核</b></span><span>WH-031 <b>贴图缺失</b></span></div><em>Browser 已完成创建、录入、排版与校对</em></div></div>
+                <div className="phase-heading"><b>02</b><span><strong>自动编写飞书云文档</strong><small>通过文档链接进入指定页面，填写、排版并校对内容</small></span></div>
+                <div className="docs-compact"><Command title="飞书文档提示词" onCopy={copy}>{"打开这个已授权的飞书云文档链接：https://example.feishu.cn/docx/asset-weekly；根据刚才的自动化测试结果和资产库数据，填写《仿真资产周报》，包含资产清单、测试结果、风险、负责人和下周计划；完成排版并检查内容是否保存成功。"}</Command><div className="permission-note"><b>连接方法</b><span>网页端登录飞书并授权文档 → 复制云文档链接 → 粘贴到 Codex Chrome 插件 → AI 自动打开并操作该文档。</span></div><div className="doc-page"><small>仿真资产周报 · Week 28</small><h3>3D Asset Operations</h3><p>本周新增 42 个资产，已审核 31 个，转换失败 3 个。</p><h4>需要关注</h4><div className="doc-table"><span>PUMP-204 <b>自动化测试通过</b></span><span>ROBOT-018 <b>待审核</b></span><span>WH-031 <b>贴图缺失</b></span></div><em>Browser 已完成打开、录入、排版、保存与校对</em></div></div>
               </section>
             </div>
           </article>

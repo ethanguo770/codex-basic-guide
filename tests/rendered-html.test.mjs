@@ -60,6 +60,8 @@ test("covers every requested capability and keeps the editorial design accessibl
   assert.match(page, /从失败任务重试/);
   assert.match(page, /自动跑完整测试/);
   assert.match(page, /自动编写飞书云文档/);
+  assert.match(page, /复制云文档链接 → 粘贴到 Codex Chrome 插件/);
+  assert.match(page, /已授权的飞书云文档链接/);
   assert.match(page, /transitionLock/);
   assert.match(page, /setTransitioning/);
   assert.match(page, /sceneMaxSteps/);
