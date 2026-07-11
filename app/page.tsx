@@ -1,74 +1,79 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
-const scenes = [
+const chapters = [
   "开场",
-  "案例",
-  "Plan",
-  "Mermaid v1",
-  "人工 Review",
-  "Mermaid v2",
-  "Ultra Goal",
-  "浏览器测试",
-  "飞书云文档",
-  "/review",
+  "能力地图",
+  "Mermaid",
+  "Plan × 流程图",
+  "Goal × UltraGoal",
+  "Browser",
+  "Review",
   "Debugger",
-  "闭环",
+  "速查表",
 ];
 
 const mermaidV1 = `flowchart LR
-  A[填写发布信息] --> B[生成说明]
-  B --> C[写入飞书文档]`;
+  A[收到支付回调] --> B[更新订单]
+  B --> C[发送通知]`;
 
-const mermaidV2 = `flowchart LR
-  A[填写发布信息] --> V{输入校验}
-  V -->|通过| K[生成幂等键]
-  V -->|失败| E[返回错误]
-  K --> B[生成说明]
-  B --> C[写入飞书文档]
-  C -->|成功| D[返回文档链接]
-  C -->|失败| R[重试 / 告警]`;
+const mermaidV2 = `flowchart TD
+  A[收到支付回调] --> B{验签通过?}
+  B -->|否| X[拒绝并记录]
+  B -->|是| C{幂等键存在?}
+  C -->|是| Y[返回已有结果]
+  C -->|否| D[事务更新订单]
+  D --> E{通知成功?}
+  E -->|否| R[进入重试队列]
+  E -->|是| F[完成]`;
 
-type Doc = { id: number; title: string; version: string; status: string };
+const commandNote = "命令前缀可能因安装方式显示为 /、$ 或插件入口，请以当前 Codex 命令面板为准。";
+
+type CommandBoxProps = {
+  label: string;
+  command: string;
+  accent?: "mint" | "amber" | "violet";
+  onCopy?: (value: string) => void;
+};
+
+function CommandBox({ label, command, accent = "mint", onCopy }: CommandBoxProps) {
+  return (
+    <div className={`command-box command-box--${accent}`}>
+      <div className="command-box__head"><span>{label}</span><button onClick={() => onCopy?.(command)}>复制</button></div>
+      <pre>{command}</pre>
+    </div>
+  );
+}
 
 export default function Home() {
   const [scene, setScene] = useState(0);
   const [direction, setDirection] = useState(1);
-  const [autoplay, setAutoplay] = useState(false);
-  const [reviewed, setReviewed] = useState<string[]>([]);
-  const [version, setVersion] = useState("v2.4.0");
-  const [releaseTitle, setReleaseTitle] = useState("协作评论与批量导出");
-  const [changes, setChanges] = useState("新增评论线程；支持批量导出；修复偶发重复提交。");
-  const [generating, setGenerating] = useState(false);
-  const [docs, setDocs] = useState<Doc[]>([]);
-  const [fixed, setFixed] = useState(false);
+  const [mermaidStep, setMermaidStep] = useState(0);
+  const [goalCase, setGoalCase] = useState<"feature" | "performance">("feature");
+  const [browserCase, setBrowserCase] = useState<"docs" | "e2e">("docs");
+  const [copied, setCopied] = useState(false);
   const wheelLock = useRef(false);
 
-  const go = useCallback(
-    (next: number) => {
-      const safe = Math.max(0, Math.min(scenes.length - 1, next));
-      if (safe === scene) return;
-      setDirection(safe > scene ? 1 : -1);
-      setScene(safe);
-    },
-    [scene],
-  );
+  const go = useCallback((next: number) => {
+    const bounded = Math.max(0, Math.min(chapters.length - 1, next));
+    if (bounded === scene) return;
+    setDirection(bounded > scene ? 1 : -1);
+    setScene(bounded);
+  }, [scene]);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       const tag = (event.target as HTMLElement)?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA") return;
       if (["ArrowRight", "ArrowDown", "PageDown", " "].includes(event.key)) {
-        event.preventDefault();
-        go(scene + 1);
+        event.preventDefault(); go(scene + 1);
       }
       if (["ArrowLeft", "ArrowUp", "PageUp"].includes(event.key)) {
-        event.preventDefault();
-        go(scene - 1);
+        event.preventDefault(); go(scene - 1);
       }
       if (event.key === "Home") go(0);
-      if (event.key === "End") go(scenes.length - 1);
+      if (event.key === "End") go(chapters.length - 1);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -76,362 +81,264 @@ export default function Home() {
 
   useEffect(() => {
     const onWheel = (event: WheelEvent) => {
-      const el = event.target as HTMLElement;
-      if (el.closest(".scrollable")) return;
-      if (wheelLock.current || Math.abs(event.deltaY) < 22) return;
+      if ((event.target as HTMLElement).closest(".scroll-area")) return;
+      if (wheelLock.current || Math.abs(event.deltaY) < 28) return;
       wheelLock.current = true;
       go(scene + (event.deltaY > 0 ? 1 : -1));
-      window.setTimeout(() => (wheelLock.current = false), 850);
+      window.setTimeout(() => { wheelLock.current = false; }, 700);
     };
     window.addEventListener("wheel", onWheel, { passive: true });
     return () => window.removeEventListener("wheel", onWheel);
   }, [go, scene]);
 
-  useEffect(() => {
-    if (!autoplay) return;
-    const timer = window.setInterval(() => {
-      setScene((value) => {
-        setDirection(1);
-        return value === scenes.length - 1 ? 0 : value + 1;
-      });
-    }, 9000);
-    return () => window.clearInterval(timer);
-  }, [autoplay]);
-
-  const toggleReview = (item: string) => {
-    setReviewed((items) =>
-      items.includes(item) ? items.filter((value) => value !== item) : [...items, item],
-    );
+  const copy = async (value: string) => {
+    try { await navigator.clipboard.writeText(value); } catch { /* clipboard may be unavailable in preview */ }
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1200);
   };
 
-  const generate = (duplicate = false) => {
-    setGenerating(true);
-    window.setTimeout(() => {
-      const count = duplicate && !fixed ? 2 : 1;
-      setDocs(
-        Array.from({ length: count }, (_, index) => ({
-          id: Date.now() + index,
-          title: releaseTitle,
-          version,
-          status: count === 2 ? `重复请求 ${index + 1}` : "创建成功",
-        })),
-      );
-      setGenerating(false);
-    }, 850);
-  };
-
-  const progress = `${((scene + 1) / scenes.length) * 100}%`;
-  const allReviewed = reviewed.length === 3;
-  const sceneClass = direction > 0 ? "scene scene--forward" : "scene scene--backward";
-
-  const navHint = useMemo(() => (scene === 0 ? "滚轮 / 方向键开始" : scenes[scene]), [scene]);
+  const sceneClass = direction > 0 ? "lesson lesson--next" : "lesson lesson--prev";
+  const progress = `${((scene + 1) / chapters.length) * 100}%`;
 
   return (
-    <main
-      className="showcase"
-      onMouseMove={(event) => {
-        const rect = event.currentTarget.getBoundingClientRect();
-        event.currentTarget.style.setProperty("--mx", `${event.clientX - rect.left}px`);
-        event.currentTarget.style.setProperty("--my", `${event.clientY - rect.top}px`);
-      }}
-    >
-      <div className="ambient ambient--one" />
-      <div className="ambient ambient--two" />
-      <div className="grid-noise" />
-      <div className="cursor-glow" />
-
-      <header className="topbar">
-        <button className="brand" onClick={() => go(0)} aria-label="返回开场">
-          <span className="brand-mark">C</span>
-          <span>CODEX · ONE CASE</span>
-        </button>
-        <div className="case-label"><i /> CASE 024 · 发布说明生成器</div>
-        <button className={`autoplay ${autoplay ? "is-on" : ""}`} onClick={() => setAutoplay(!autoplay)}>
-          <span>{autoplay ? "Ⅱ" : "▶"}</span> {autoplay ? "自动播放中" : "自动播放"}
-        </button>
+    <main className="academy">
+      <div className="academy-grid" />
+      <div className="academy-glow" />
+      <header className="academy-header">
+        <button className="academy-brand" onClick={() => go(0)}><b>C</b><span>CODEX FIELD GUIDE</span></button>
+        <div className="academy-topic"><i /> 六个命令 · 六组案例</div>
+        <div className="academy-hint">滚轮 / 方向键翻页</div>
       </header>
 
-      <nav className="scene-rail" aria-label="场景导航">
-        {scenes.map((label, index) => (
-          <button
-            key={label}
-            className={index === scene ? "active" : index < scene ? "done" : ""}
-            onClick={() => go(index)}
-            aria-label={`前往 ${label}`}
-          >
-            <span>{String(index + 1).padStart(2, "0")}</span>
-            <b>{label}</b>
+      <nav className="chapter-nav" aria-label="章节导航">
+        {chapters.map((name, index) => (
+          <button key={name} className={index === scene ? "active" : index < scene ? "done" : ""} onClick={() => go(index)}>
+            <b>{String(index + 1).padStart(2, "0")}</b><span>{name}</span>
           </button>
         ))}
       </nav>
 
-      <section className="stage" aria-live="polite">
-        <div key={`wipe-${scene}`} className="transition-wipe"><i /><i /><i /></div>
+      <section className="academy-stage" aria-live="polite">
+        <div key={`transition-${scene}`} className="page-transition"><i /><i /></div>
 
         {scene === 0 && (
-          <article key="cover" className={`${sceneClass} cover`}>
-            <div className="eyebrow stagger-1"><span>LIVE CASE DEMO</span><em>不是功能清单，是一次真实交付</em></div>
-            <h1 className="hero-title stagger-2">
-              <span>CODEX</span>
-              <strong>把一个想法，推进到可验证的交付</strong>
-            </h1>
-            <p className="hero-copy stagger-3">从一句需求开始。让 Plan、Mermaid、Ultra Goal、Browser、/review 与 Debugger 在同一条开发链路里接力。</p>
-            <div className="hero-orbit stagger-4" aria-hidden="true">
-              <span>PLAN</span><span>GRAPH</span><span>GOAL</span><span>TEST</span><span>REVIEW</span><span>DEBUG</span>
-              <b>SHIP</b>
+          <article className={`${sceneClass} intro-lesson`}>
+            <div className="intro-kicker"><span>CODEX COMMANDS, EXPLAINED</span><em>从“会用 AI”到“会组织 AI 工作”</em></div>
+            <h1>六个命令，<br /><strong>把 Codex 用成工程伙伴</strong></h1>
+            <p>不堆功能名。每个能力都用一个真实开发案例，讲清楚它解决什么问题、怎么输入、执行什么、最后留下什么证据。</p>
+            <div className="intro-commands">
+              <span>MERMAID</span><span>PLAN</span><span>GOAL</span><span>BROWSER</span><span>REVIEW</span><span>DEBUGGER</span>
             </div>
-            <button className="primary-action stagger-5" onClick={() => go(1)}>进入案例 <span>→</span></button>
+            <button className="start-button" onClick={() => go(1)}>开始科普 <b>→</b></button>
+            <div className="intro-wheel">
+              <div className="wheel-center"><small>WORKFLOW</small><b>CODEX</b></div>
+              {chapters.slice(2, 8).map((name, index) => <span key={name} className={`wheel-${index + 1}`}>{name.replace(" × UltraGoal", "")}</span>)}
+            </div>
           </article>
         )}
 
         {scene === 1 && (
-          <article key="brief" className={`${sceneClass} split-scene`}>
-            <div className="scene-copy">
-              <div className="section-number">01 / CASE</div>
-              <h2>只讲一个案例：<br /><span>发布说明生成器</span></h2>
-              <p>把散落的版本信息整理成规范发布说明，并自动创建飞书云文档。看似简单，却包含输入校验、第三方 API、幂等、错误恢复与前端测试。</p>
-              <div className="brief-metrics">
-                <span><b>01</b> 输入表单</span><span><b>02</b> 内容生成</span><span><b>03</b> 飞书落档</span>
-              </div>
+          <article className={`${sceneClass} map-lesson`}>
+            <div className="lesson-tag">00 · 先选对入口</div>
+            <div className="map-head"><h2>遇到什么问题，<br /><span>就调用什么能力</span></h2><p>这六个入口不是替代关系，而是从理解、计划、执行到验证的不同环节。</p></div>
+            <div className="capability-map">
+              {[
+                ["01", "Mermaid", "我需要先看懂复杂流程", "把文字变成可审阅的共同模型"],
+                ["02", "Plan", "需求还没拆成可执行步骤", "明确范围、顺序、风险与验收"],
+                ["03", "Goal / UltraGoal", "任务很长，不能靠一次对话完成", "持久目标、检查点、自动推进"],
+                ["04", "Browser", "需要操作真实网页", "填表、导出文档、执行 E2E"],
+                ["05", "Review / code-review", "代码准备合并", "独立审查风险并给出合并结论"],
+                ["06", "Debugger", "出现异常但根因不明", "复现、定位、修复、回归"],
+              ].map(([id, title, question, answer]) => (
+                <button key={id} onClick={() => go(Number(id) + 1)}><b>{id}</b><div><strong>{title}</strong><span>{question}</span></div><em>{answer}</em><i>↗</i></button>
+              ))}
             </div>
-            <div className="product-frame product-frame--hero">
-              <div className="window-bar"><i /><i /><i /><span>release.local</span></div>
-              <div className="mock-app">
-                <div className="mock-sidebar"><b>R</b><i/><i/><i/></div>
-                <div className="mock-content">
-                  <small>RELEASE STUDIO</small><h3>创建发布说明</h3>
-                  <div className="mock-row"><span>版本号</span><b>v2.4.0</b></div>
-                  <div className="mock-row"><span>本次变更</span><b>评论线程、批量导出…</b></div>
-                  <button>生成飞书云文档 ↗</button>
-                </div>
-              </div>
-              <div className="frame-tag">THE PRODUCT WE WILL SHIP</div>
-            </div>
+            <div className="map-rule"><b>推荐顺序：</b>先让理解可见，再让计划可执行；最后用自动化、Review 与 Debugger 把结果变成证据。</div>
           </article>
         )}
 
         {scene === 2 && (
-          <article key="plan" className={`${sceneClass} plan-scene`}>
-            <div className="section-number">02 / PLAN</div>
-            <h2>先把“做一个功能”，<span>变成可执行契约</span></h2>
-            <div className="plan-canvas">
-              <div className="raw-request">
-                <small>RAW REQUEST</small>
-                <p>“做个页面，把发布信息生成飞书文档。”</p>
+          <article className={`${sceneClass} mermaid-lesson`}>
+            <div className="lesson-tag">01 · AI TEXT → MERMAID → CODE</div>
+            <div className="lesson-head"><div><h2>Mermaid：先把 AI 的理解<br /><span>变成人能审阅的流程</span></h2></div><p>适合业务流程、异步任务、权限判断、状态机。重点不是“一次画对”，而是把图当作人机协作的中间语言。</p></div>
+            <div className="mermaid-workbench">
+              <div className="mermaid-brief">
+                <CommandBox label="示例输入 · 支付回调" command={'请先不要修改代码。阅读支付回调实现，输出 Mermaid 流程图；标出验签、幂等、事务、失败重试和告警分支。'} onCopy={copy} />
+                <div className="human-loop">
+                  {[
+                    ["1", "AI 输出 v1", "快速暴露当前理解"],
+                    ["2", "人类批注", "补充遗漏的规则与例外"],
+                    ["3", "重新输入信息", "让 AI 查最佳实践并调整流程"],
+                    ["4", "确认 v2", "再更新 Plan 和代码"],
+                  ].map(([id, title, text], index) => <button key={id} className={mermaidStep === index ? "active" : mermaidStep > index ? "done" : ""} onClick={() => setMermaidStep(index)}><b>{id}</b><span><strong>{title}</strong><small>{text}</small></span></button>)}
+                </div>
               </div>
-              <div className="plan-arrow"><span>AI 追问</span><i>→</i></div>
-              <div className="plan-terminal">
-                <div className="terminal-head"><span>codex / plan</span><em>● RUNNING</em></div>
-                <div className="terminal-line"><b>01</b><span>输入字段与必填规则是什么？</span><i>✓</i></div>
-                <div className="terminal-line"><b>02</b><span>飞书失败后重试还是回滚？</span><i>✓</i></div>
-                <div className="terminal-line"><b>03</b><span>如何避免重复创建文档？</span><i>✓</i></div>
-                <div className="terminal-line"><b>04</b><span>什么证据可以证明完成？</span><i>✓</i></div>
+              <div className="mermaid-panel">
+                <div className="panel-tabs"><button className={mermaidStep < 2 ? "active" : ""} onClick={() => setMermaidStep(0)}>流程 v1</button><button className={mermaidStep >= 2 ? "active" : ""} onClick={() => setMermaidStep(3)}>流程 v2 · 最佳实践</button><span>{mermaidStep >= 2 ? "+ 验签 / 幂等 / 重试" : "待人类 Review"}</span></div>
+                <pre>{mermaidStep >= 2 ? mermaidV2 : mermaidV1}</pre>
+                <div className={`flow-preview ${mermaidStep >= 2 ? "flow-preview--advanced" : ""}`}>
+                  <div className="flow-main"><span>支付回调</span><i>→</i>{mermaidStep >= 2 && <><span className="decision">验签？</span><i>→</i><span className="guard">幂等？</span><i>→</i></>}<span>更新订单</span><i>→</i><span>发送通知</span></div>
+                  {mermaidStep >= 2 && <div className="flow-branches"><span>验签失败 → 拒绝</span><span>重复请求 → 复用结果</span><span>通知失败 → 重试队列</span></div>}
+                  {mermaidStep === 1 && <div className="review-notes"><span>缺少验签</span><span>双回调怎么办？</span><span>通知失败呢？</span></div>}
+                </div>
               </div>
             </div>
-            <div className="contract-strip">
-              <span>范围：表单 → 内容 → 飞书</span><span>风险：认证 / 幂等 / 超时</span><span>验收：E2E + 文档链接 + Review 通过</span>
-            </div>
+            <div className="takeaway"><b>关键习惯</b><span>不要直接让 AI 改代码：先画图 → 人类审阅 → 补信息 → 查最佳实践 → 定稿流程 → 再修改代码与测试。</span></div>
           </article>
         )}
 
         {scene === 3 && (
-          <article key="mermaid1" className={`${sceneClass} graph-scene`}>
-            <div className="graph-head">
-              <div><div className="section-number">03 / TEXT → MERMAID</div><h2>AI 先把理解<span>画出来</span></h2></div>
-              <p>图不是装饰。它是人和 AI 之间最低成本的“共同模型”。</p>
-            </div>
-            <div className="graph-workbench">
-              <pre className="mermaid-code"><small>MERMAID · V1</small>{mermaidV1}</pre>
-              <div className="diagram diagram--v1">
-                <div className="flow-node n1"><small>INPUT</small>填写发布信息</div><div className="flow-line l1"><i /></div>
-                <div className="flow-node n2"><small>GENERATE</small>生成说明</div><div className="flow-line l2"><i /></div>
-                <div className="flow-node n3 danger"><small>EXTERNAL</small>写入飞书文档</div>
-                <div className="question-pulse">?</div>
+          <article className={`${sceneClass} plan-lesson`}>
+            <div className="lesson-tag">02 · PLAN × FLOWCHART</div>
+            <div className="lesson-head"><div><h2>Plan 决定“怎么做”，<br /><span>流程图验证“是否想对”</span></h2></div><p>Plan 适合拆范围、依赖、风险和验收；Mermaid 适合检查业务逻辑。两者一起使用，能在写代码前发现返工点。</p></div>
+            <div className="plan-grid">
+              <div className="plan-input">
+                <CommandBox label="Codex Plan / OMX $plan" command={'$plan --direct "为会员退款功能制定计划。先输出 Mermaid 状态图，再列出代码改动、迁移、测试与回滚步骤。"'} accent="amber" onCopy={copy} />
+                <div className="when-use"><small>什么时候用</small><span>需求跨 3 个以上模块</span><span>业务分支多、容易理解偏差</span><span>需要先评审再开发</span></div>
+              </div>
+              <div className="plan-output">
+                <div className="output-title"><span>配套案例</span><b>会员退款功能</b></div>
+                <div className="plan-columns">
+                  <div><small>PLAN</small><ol><li>确认退款状态与权限</li><li>扩展订单状态机</li><li>接入支付渠道退款 API</li><li>增加补偿任务与告警</li><li>单元 / 集成 / E2E 验收</li></ol></div>
+                  <div><small>MERMAID REVIEW</small><div className="refund-flow"><span>申请退款</span><i>↓</i><span className="decision">可退款？</span><div><b>否 → 拒绝</b><b>是 → 渠道退款</b></div><i>↓</i><span>完成 / 补偿</span></div></div>
+                </div>
+                <div className="plan-sync"><span>人类修改流程图</span><i>→</i><span>AI 同步更新 Plan</span><i>→</i><span>按新 Plan 改代码</span></div>
               </div>
             </div>
-            <div className="graph-warning"><b>看起来通了。</b><span>但失败分支、鉴权与重复提交，都还不在图里。</span></div>
+            <div className="compare-strip"><div><b>只有 Plan</b><span>步骤完整，但业务理解可能错</span></div><div><b>只有流程图</b><span>逻辑清楚，但缺少实施与验收</span></div><div className="best"><b>Plan + Mermaid</b><span>理解与执行同时可审阅</span></div></div>
           </article>
         )}
 
         {scene === 4 && (
-          <article key="human-review" className={`${sceneClass} review-graph-scene`}>
-            <div className="section-number">04 / HUMAN IN THE LOOP</div>
-            <div className="review-layout">
-              <div className="review-intro">
-                <h2>人不必重写 Plan，<br />只需<span>指出缺口</span></h2>
-                <p>点击三个批注，模拟架构师对流程图的快速审阅。</p>
-                <div className="review-actions">
-                  {["输入校验", "幂等保护", "失败恢复"].map((item, index) => (
-                    <button key={item} className={reviewed.includes(item) ? "checked" : ""} onClick={() => toggleReview(item)}>
-                      <b>{reviewed.includes(item) ? "✓" : `0${index + 1}`}</b><span>{item}<small>{["空内容不能提交", "同一请求只创建一次", "超时、重试、告警"][index]}</small></span>
-                    </button>
-                  ))}
-                </div>
+          <article className={`${sceneClass} goal-lesson`}>
+            <div className="lesson-tag">03 · GOAL × OMX ULTRAGOAL</div>
+            <div className="lesson-head"><div><h2>Goal 管住完成标准，<br /><span>UltraGoal 管住长任务全过程</span></h2></div><p>Goal 适合一个明确、可验证的目标；UltraGoal 把复杂任务拆成持久子目标，记录检查点与证据，失败后可继续推进。</p></div>
+            <div className="case-tabs"><button className={goalCase === "feature" ? "active" : ""} onClick={() => setGoalCase("feature")}>案例 A · 开发完整功能</button><button className={goalCase === "performance" ? "active" : ""} onClick={() => setGoalCase("performance")}>案例 B · 性能问题排查</button></div>
+            <div className="goal-board">
+              <div className="goal-command-panel">
+                {goalCase === "feature" ? (
+                  <CommandBox label="UltraGoal · 功能开发" command={'omx ultragoal create-goals --brief "开发团队工作台：完成 UX 设计、前后端实现、文档、浏览器 E2E、代码 Review 与发布报告"'} onCopy={copy} />
+                ) : (
+                  <CommandBox label="Goal / Performance Goal" command={'创建目标：把订单列表 p95 从 1.8s 降到 600ms；必须包含基线、火焰图、根因、优化、压测和回归证据。'} accent="violet" onCopy={copy} />
+                )}
+                <div className="goal-difference"><div><b>Goal</b><span>一个目标 + 成功标准 + 当前状态</span></div><div><b>UltraGoal</b><span>brief + 多个子目标 + ledger 检查点 + 最终质量门</span></div></div>
               </div>
-              <div className="annotated-flow">
-                <div className="mini-flow"><span>填写信息</span><i>→</i><span>生成说明</span><i>→</i><span>飞书 API</span></div>
-                <div className={`annotation a1 ${reviewed.includes("输入校验") ? "active" : ""}`}><b>01</b> 校验在哪里？</div>
-                <div className={`annotation a2 ${reviewed.includes("幂等保护") ? "active" : ""}`}><b>02</b> 双击会发生什么？</div>
-                <div className={`annotation a3 ${reviewed.includes("失败恢复") ? "active" : ""}`}><b>03</b> API 超时怎么办？</div>
-                <div className={`review-stamp ${allReviewed ? "show" : ""}`}>READY TO ITERATE</div>
+              <div className="goal-pipeline">
+                {(goalCase === "feature" ? [
+                  ["G-01", "设计", "交互稿 / 数据模型", "done"],
+                  ["G-02", "实现", "前端 + API + 数据库", "done"],
+                  ["G-03", "输出", "README + 接口文档", "active"],
+                  ["G-04", "测试", "unit + integration + browser E2E", ""],
+                  ["G-05", "质量门", "code-review + 交付证据", ""],
+                ] : [
+                  ["G-01", "建立基线", "p50 / p95 / p99", "done"],
+                  ["G-02", "定位瓶颈", "trace / flamegraph / query", "done"],
+                  ["G-03", "最小优化", "索引 + 缓存策略", "active"],
+                  ["G-04", "自动压测", "同数据集对比", ""],
+                  ["G-05", "防回退", "性能阈值进入 CI", ""],
+                ]).map(([id, title, proof, state]) => <div key={id} className={`goal-row ${state}`}><b>{id}</b><span><strong>{title}</strong><small>{proof}</small></span><em>{state === "done" ? "✓" : state === "active" ? "RUNNING" : "PENDING"}</em></div>)}
               </div>
             </div>
-            <div className="review-progress"><span style={{ width: `${(reviewed.length / 3) * 100}%` }} /><b>{reviewed.length}/3 REVIEWED</b></div>
+            <div className="goal-evidence"><b>自动化的关键不是“无人看管”</b><span>而是每个子目标都有停止条件、测试证据和失败记录；最终完成还需要验证与独立 Review。</span></div>
           </article>
         )}
 
         {scene === 5 && (
-          <article key="mermaid2" className={`${sceneClass} graph-v2-scene`}>
-            <div className="section-number">05 / ITERATE THE PLAN</div>
-            <div className="v2-head"><h2>流程图 v2，<span>也是新的执行计划</span></h2><div><b>+5</b> 节点 <b>+3</b> 失败分支 <b>+1</b> 幂等约束</div></div>
-            <div className="v2-board">
-              <pre className="mermaid-code compact"><small>MERMAID · V2</small>{mermaidV2}</pre>
-              <div className="v2-flow">
-                <div className="v2-node input">填写信息</div><i>→</i><div className="v2-node decision">输入校验</div><i>→</i><div className="v2-node guard">幂等键</div><i>→</i><div className="v2-node">生成说明</div><i>→</i><div className="v2-node external">飞书 API</div>
-                <div className="branch branch--one"><span>校验失败</span><b>返回错误</b></div>
-                <div className="branch branch--two"><span>API 失败</span><b>重试 / 告警</b></div>
-                <div className="branch branch--three"><span>成功</span><b>文档链接</b></div>
+          <article className={`${sceneClass} browser-lesson`}>
+            <div className="lesson-tag">04 · BROWSER PLUGIN</div>
+            <div className="lesson-head"><div><h2>Browser：让 Codex 从“写代码”<br /><span>走到“操作真实网页”</span></h2></div><p>适合需要登录态、表单操作、页面断言、截图证据和在线文档录入的任务。它操作的是可见页面，而不是猜测页面结果。</p></div>
+            <div className="case-tabs"><button className={browserCase === "docs" ? "active" : ""} onClick={() => setBrowserCase("docs")}>案例 A · 输出飞书云文档</button><button className={browserCase === "e2e" ? "active" : ""} onClick={() => setBrowserCase("e2e")}>案例 B · 网站自动化测试</button></div>
+            <div className="browser-demo">
+              <div className="browser-prompt">
+                <CommandBox label="自然语言调用 Browser" command={browserCase === "docs" ? '阅读本仓库的 API 和部署说明，整理成《订单服务接入指南》，打开飞书云文档，按“概述 / 鉴权 / 请求示例 / 错误码 / 发布检查”录入并校对。' : '打开本地结算页；使用测试账号登录，添加两件商品，验证优惠券、库存不足和支付失败三个分支，并输出截图与断言结果。'} accent={browserCase === "docs" ? "mint" : "amber"} onCopy={copy} />
+                <div className="browser-rules"><small>使用前确认</small><span>目标网站与账号已授权</span><span>写入外部文档属于真实操作</span><span>最终以页面状态和截图为证据</span></div>
+              </div>
+              <div className="browser-window">
+                <div className="browser-bar"><i /><i /><i /><span>{browserCase === "docs" ? "feishu.cn/docx/…" : "localhost:3000/checkout"}</span></div>
+                {browserCase === "docs" ? (
+                  <div className="feishu-mock"><aside><b>飞书</b><span>文档</span><span>知识库</span></aside><section><small>订单服务接入指南</small><h3>面向开发者的 API 使用说明</h3><div className="doc-outline"><b>01 概述</b><p>服务边界、调用链路与适用场景。</p><b>02 鉴权</b><p>Token 获取、权限范围与安全注意事项。</p><b>03 请求示例</b><pre>POST /v1/orders</pre><b>04 错误码</b></div><em>✓ 已录入并校对 5 个章节</em></section></div>
+                ) : (
+                  <div className="e2e-mock"><div className="test-steps"><small>BROWSER TEST</small><span className="done">✓ 登录测试账号</span><span className="done">✓ 添加两件商品</span><span className="done">✓ 优惠券 -20.00</span><span className="active">● 模拟支付失败</span><span>○ 截图并输出报告</span></div><div className="checkout"><small>订单确认</small><div><span>商品小计</span><b>¥ 268.00</b></div><div><span>优惠券</span><b className="green">- ¥ 20.00</b></div><div className="total"><span>应付</span><b>¥ 248.00</b></div><button>提交支付</button><em>测试模式 · 不会真实扣款</em></div></div>
+                )}
               </div>
             </div>
-            <div className="iteration-callout"><span>HUMAN REVIEW</span><i>→</i><span>DIAGRAM UPDATE</span><i>→</i><span>PLAN UPDATE</span></div>
+            <div className="takeaway"><b>边界</b><span>Browser 可以读页面和执行操作；涉及发送、提交、权限或真实外部写入时，需要明确授权，并在操作后验证页面结果。</span></div>
           </article>
         )}
 
         {scene === 6 && (
-          <article key="goal" className={`${sceneClass} goal-scene`}>
-            <div className="goal-copy">
-              <div className="section-number">06 / GOAL · OMX ULTRA GOAL</div>
-              <h2>Plan 说明怎么做。<br /><span>Goal 保证做到哪一步。</span></h2>
-              <p>长任务不再依赖一次对话的记忆：目标、检查点、完成证据被持久化，失败后从最近的证据继续。</p>
-              <div className="goal-command"><small>$</small> omx ultragoal <span>release-note-generator</span><i>↵</i></div>
+          <article className={`${sceneClass} review-lesson`}>
+            <div className="lesson-tag">05 · REVIEW × OMX CODE-REVIEW</div>
+            <div className="lesson-head"><div><h2>Review 找问题，<br /><span>OMX code-review 建立独立质量门</span></h2></div><p>普通 Review 适合快速检查一个 diff；OMX code-review 适合合并前的系统审查，由独立 reviewer 与 architect 两条视角给出严重级别和最终结论。</p></div>
+            <div className="review-board">
+              <div className="review-commands">
+                <CommandBox label="快速 Review" command={'/review 检查本次支付回调 diff，重点看安全、幂等、事务和测试缺口。'} accent="amber" onCopy={copy} />
+                <CommandBox label="OMX 独立 Review" command={'$code-review 评审当前分支：输出 CRITICAL/HIGH/MEDIUM/LOW、file:line 证据、architect 状态和合并建议。'} accent="violet" onCopy={copy} />
+                <p>{commandNote}</p>
+              </div>
+              <div className="review-case">
+                <div className="review-case__head"><span>配套案例 · 支付回调 PR</span><b>REQUEST CHANGES</b></div>
+                <div className="review-lanes">
+                  <div><small>CODE REVIEWER</small><article className="finding critical"><b>HIGH</b><span><strong>缺少幂等约束</strong><em>api/payment.ts:88</em><p>渠道重试会重复更新订单并重复发券。</p></span></article><article className="finding medium"><b>MED</b><span><strong>日志包含完整请求体</strong><em>api/payment.ts:64</em><p>可能记录用户和支付敏感字段。</p></span></article></div>
+                  <div><small>ARCHITECT</small><article className="architecture-watch"><b>WATCH</b><strong>支付状态与通知状态耦合</strong><p>建议用 outbox 事件隔离事务边界，否则通知失败会污染支付主流程。</p></article><div className="merge-rule"><span>reviewer: REQUEST CHANGES</span><span>architect: WATCH</span><b>最终：REQUEST CHANGES</b></div></div>
+                </div>
+              </div>
             </div>
-            <div className="goal-timeline">
-              <div className="goal-spine" />
-              {[
-                ["G-01", "冻结需求与流程图", "plan.md · mermaid v2", "done"],
-                ["G-02", "实现表单与内容生成", "unit tests · build", "done"],
-                ["G-03", "接入飞书与幂等保护", "API contract · retry", "active"],
-                ["G-04", "浏览器 E2E 与 Review", "screenshots · findings", ""],
-                ["G-05", "Debugger 回归与交付", "0 duplicate · report", ""],
-              ].map(([id, title, evidence, state]) => (
-                <div key={id} className={`goal-step ${state}`}><b>{id}</b><div><strong>{title}</strong><small>{evidence}</small></div><span>{state === "done" ? "✓" : state === "active" ? "RUN" : ""}</span></div>
-              ))}
-            </div>
+            <div className="review-checklist"><span>安全</span><span>正确性</span><span>性能</span><span>可维护性</span><span>测试</span><span>架构边界</span></div>
           </article>
         )}
 
         {scene === 7 && (
-          <article key="browser" className={`${sceneClass} browser-scene`}>
-            <div className="browser-head"><div><div className="section-number">07 / BROWSER CONTROL</div><h2>不是“告诉你怎么测”，<span>是直接操作页面</span></h2></div><div className="live-pill"><i/> INTERACTIVE DEMO</div></div>
-            <div className="browser-shell">
-              <div className="browser-chrome"><span>‹</span><span>›</span><span>↻</span><div><i/>http://localhost:3000/release</div><b>⋮</b></div>
-              <div className="browser-body">
-                <div className="test-script">
-                  <small>CODEX BROWSER</small>
-                  <div className="script-line done"><b>01</b> 定位版本输入框 <span>✓</span></div>
-                  <div className="script-line done"><b>02</b> 填写发布内容 <span>✓</span></div>
-                  <div className={`script-line ${docs.length ? "done" : "active"}`}><b>03</b> 点击生成按钮 <span>{docs.length ? "✓" : "…"}</span></div>
-                  <div className={`script-line ${docs.length ? "active" : ""}`}><b>04</b> 断言文档链接 <span>{docs.length ? "✓" : ""}</span></div>
-                </div>
-                <form className="release-form" onSubmit={(event) => { event.preventDefault(); generate(false); }}>
-                  <div className="form-title"><div><small>RELEASE STUDIO</small><h3>创建发布说明</h3></div><span>Mock Feishu API</span></div>
-                  <label>版本号<input value={version} onChange={(event) => setVersion(event.target.value)} aria-label="版本号" /></label>
-                  <label>发布标题<input value={releaseTitle} onChange={(event) => setReleaseTitle(event.target.value)} aria-label="发布标题" /></label>
-                  <label>变更内容<textarea value={changes} onChange={(event) => setChanges(event.target.value)} aria-label="变更内容" /></label>
-                  <button type="submit" disabled={generating || !version || !releaseTitle}>{generating ? "正在生成…" : "生成飞书云文档  ↗"}</button>
-                </form>
+          <article className={`${sceneClass} debugger-lesson`}>
+            <div className="lesson-tag">06 · DEBUGGER AGENT</div>
+            <div className="lesson-head"><div><h2>Debugger 不猜答案，<br /><span>它把异常变成可复现的证据链</span></h2></div><p>适合“偶发、只在线上出现、日志不完整、修了又复发”的问题。核心流程是复现 → 缩小范围 → 证明根因 → 最小修复 → 回归。</p></div>
+            <div className="debugger-grid">
+              <div className="debug-prompt">
+                <CommandBox label="调用 Debugger" command={'使用 debugger 智能体调查“用户双击后偶发生成两份飞书文档”。先复现，不要先改代码；输出时间线、根因、最小修复和回归测试。'} onCopy={copy} />
+                <div className="debug-principles"><span><b>不要</b>看到报错就直接改</span><span><b>必须</b>先建立稳定复现</span><span><b>必须</b>用测试证明修复有效</span></div>
+              </div>
+              <div className="debug-trace">
+                <div className="trace-title"><span>配套案例 · 重复文档</span><em>ROOT CAUSE CONFIRMED</em></div>
+                {[
+                  ["T+000", "用户点击 #1", "POST req_a1", "done"],
+                  ["T+041", "用户点击 #2", "POST req_a2", "done"],
+                  ["T+312", "两个请求均未命中幂等记录", "race", "bad"],
+                  ["T+874", "创建两份飞书文档", "2 × 201", "bad"],
+                  ["FIX", "按钮 pending 锁定 + 后端唯一幂等键", "minimal patch", "good"],
+                  ["TEST", "并发双击 20 次，只创建 1 份", "20/20 pass", "good"],
+                ].map(([time, event, data, state]) => <div key={time} className={`trace-line ${state}`}><b>{time}</b><span>{event}</span><em>{data}</em></div>)}
               </div>
             </div>
+            <div className="debug-loop"><span>症状</span><i>→</i><span>假设</span><i>→</i><span>复现</span><i>→</i><span>根因</span><i>→</i><span>最小修复</span><i>→</i><b>回归证据</b></div>
           </article>
         )}
 
         {scene === 8 && (
-          <article key="feishu" className={`${sceneClass} feishu-scene`}>
-            <div className="section-number">08 / FEISHU CLOUD DOC</div>
-            <div className="feishu-layout">
-              <div className="feishu-request">
-                <small>TOOL CALL · MOCK</small><h2>结构化内容，<br /><span>直接落到协作文档</span></h2>
-                <div className="request-card"><b>POST</b><span>/open-apis/docx/v1/documents</span><i>{`{ title, blocks, idempotency_key }`}</i></div>
-                <button onClick={() => generate(false)} disabled={generating}>{generating ? "创建中…" : "运行一次文档创建"}</button>
-                <p>演示环境使用 Mock API，不会写入真实飞书空间；生产环境替换凭据即可沿用同一流程。</p>
-              </div>
-              <div className={`doc-preview ${docs.length ? "has-doc" : ""}`}>
-                <div className="doc-toolbar"><b>≡</b><span>飞书云文档 · Preview</span><em>{docs.length ? "已创建" : "等待创建"}</em></div>
-                {docs.length ? (
-                  <div className="doc-page">
-                    <div className="doc-icon">R</div><small>RELEASE NOTE · {version}</small><h3>{releaseTitle}</h3>
-                    <div className="doc-meta"><span>负责人：Codex</span><span>状态：Ready</span><span>日期：2026-07-11</span></div>
-                    <h4>本次变更</h4><p>{changes}</p><h4>风险与回滚</h4><p>第三方 API 超时自动重试；使用幂等键避免重复创建。</p>
-                    <div className="doc-link">mock://feishu/docx/release-{version.replaceAll(".", "-")}</div>
-                  </div>
-                ) : <div className="empty-doc"><span>＋</span><p>点击左侧按钮，生成文档预览</p></div>}
-              </div>
-            </div>
-          </article>
-        )}
-
-        {scene === 9 && (
-          <article key="code-review" className={`${sceneClass} code-review-scene`}>
-            <div className="review-title"><div className="section-number">09 / REVIEW AGENT</div><h2><code>/review</code> 不复述代码，<span>只找会出事的地方</span></h2></div>
-            <div className="diff-review">
-              <div className="code-pane scrollable">
-                <div className="code-head"><span>app/api/release/route.ts</span><em>+42 −3</em></div>
-                <pre><span className="line-no">18</span> <i>export async function POST(req) {'{'}</i>{"\n"}<span className="line-no">19</span>   const body = await req.json(){"\n"}<span className="line-no">20</span> <mark>  console.log(&quot;release&quot;, body)</mark>{"\n"}<span className="line-no">21</span>   const doc = await feishu.create(body){"\n"}<span className="line-no">22</span>   return Response.json(doc){"\n"}<span className="line-no">23</span> <i>{'}'}</i></pre>
-              </div>
-              <div className="findings">
-                <div className="finding high"><b>P0</b><div><strong>缺少幂等保护</strong><p>按钮双击或网络重试会创建两份文档。</p></div><span>route.ts:21</span></div>
-                <div className="finding medium"><b>P1</b><div><strong>敏感内容写入日志</strong><p>body 可能包含内部发布信息。</p></div><span>route.ts:20</span></div>
-                <div className="finding low"><b>P2</b><div><strong>没有输入 schema</strong><p>空标题会流入第三方 API。</p></div><span>route.ts:19</span></div>
-              </div>
-            </div>
-            <div className="review-verdict"><span>VERDICT</span><b>REQUEST CHANGES</b><i>3 actionable findings · 0 style comments</i></div>
-          </article>
-        )}
-
-        {scene === 10 && (
-          <article key="debugger" className={`${sceneClass} debugger-scene`}>
-            <div className="debug-head"><div><div className="section-number">10 / DEBUGGER AGENT</div><h2>从“偶发重复”，<span>走到可复现、可解释、可回归</span></h2></div><div className={`bug-status ${fixed ? "fixed" : docs.length === 2 ? "failed" : ""}`}>{fixed ? "FIX VERIFIED" : docs.length === 2 ? "BUG REPRODUCED" : "READY TO REPRODUCE"}</div></div>
-            <div className="debug-grid">
-              <div className="debug-controls">
-                <button onClick={() => generate(true)} disabled={generating}>{generating ? "复现中…" : "① 模拟用户双击提交"}</button>
-                <button onClick={() => { setFixed(true); setDocs([]); }} disabled={generating}>② 应用幂等修复</button>
-                <button onClick={() => generate(true)} disabled={generating || !fixed}>③ 重新运行回归</button>
-              </div>
-              <div className="trace-panel">
-                <small>REQUEST TRACE</small>
-                <div className="trace-row"><b>T+000</b><span>click #1 → POST /api/release</span><i>req_a1</i></div>
-                <div className="trace-row"><b>T+041</b><span>click #2 → POST /api/release</span><i>req_a2</i></div>
-                <div className={`trace-row ${fixed ? "success" : docs.length === 2 ? "error" : ""}`}><b>T+8{fixed ? "12" : "74"}</b><span>{fixed ? "相同 idempotency_key → 复用结果" : docs.length === 2 ? "创建 2 份文档 → 根因确认" : "等待复现…"}</span><i>{fixed ? "200 CACHED" : docs.length === 2 ? "2 × 201" : "—"}</i></div>
-              </div>
-              <div className="root-cause">
-                <span>ROOT CAUSE</span><h3>前端未锁定按钮<br />后端没有幂等键</h3><div><i /> UI: pending 时 disabled</div><div><i /> API: hash(user + version)</div><div><i /> Test: double-click regression</div>
-              </div>
-              <div className={`doc-counter ${docs.length === 2 ? "bad" : fixed && docs.length === 1 ? "good" : ""}`}><small>DOCUMENTS CREATED</small><strong>{docs.length}</strong><span>{fixed && docs.length === 1 ? "EXPECTED: 1 ✓" : docs.length === 2 ? "EXPECTED: 1 ✕" : "RUN THE TRACE"}</span></div>
-            </div>
-          </article>
-        )}
-
-        {scene === 11 && (
-          <article key="loop" className={`${sceneClass} finale-scene`}>
-            <div className="section-number">11 / THE DELIVERY LOOP</div>
-            <h2>Codex 的价值，不是多一个写代码工具。<br /><span>而是让交付闭环持续运转。</span></h2>
-            <div className="loop-visual">
-              <div className="loop-ring ring-one"/><div className="loop-ring ring-two"/>
-              <div className="loop-center"><small>VERIFIED</small><b>SHIP</b><span>有证据地完成</span></div>
+          <article className={`${sceneClass} cheatsheet-lesson`}>
+            <div className="lesson-tag">07 · COMMAND CHEATSHEET</div>
+            <h2>把六个入口，<span>放进日常开发节奏</span></h2>
+            <div className="cheatsheet">
               {[
-                ["PLAN", "把模糊变成契约"], ["GRAPH", "让理解可以审阅"], ["GOAL", "让长任务持续推进"], ["BROWSER", "在真实界面验收"], ["/REVIEW", "交付前找到风险"], ["DEBUGGER", "从症状追到根因"],
-              ].map(([title, caption], index) => <div key={title} className={`loop-item loop-item-${index + 1}`}><b>{title}</b><span>{caption}</span></div>)}
+                ["Mermaid", "先理解", "把复杂逻辑画成图，让人类审阅后再改代码", "支付回调流程"],
+                ["Plan × 图", "再规划", "用 Plan 管实施，用图验证业务理解", "会员退款功能"],
+                ["Goal / UltraGoal", "持续执行", "长任务分目标、留检查点、以证据完成", "功能开发 / 性能排查"],
+                ["Browser", "操作真实界面", "把文档写入网页，或执行网站 E2E", "飞书文档 / 结算测试"],
+                ["Review / code-review", "合并前把关", "独立审查正确性、安全、架构与测试", "支付回调 PR"],
+                ["Debugger", "异常时定位", "从稳定复现走到根因和回归测试", "重复创建文档"],
+              ].map(([name, moment, purpose, example], index) => <div key={name}><b>{String(index + 1).padStart(2, "0")}</b><span><strong>{name}</strong><small>{moment}</small></span><p>{purpose}</p><em>{example}</em></div>)}
             </div>
-            <div className="final-rule"><span>一句需求</span><i>→</i><span>共同模型</span><i>→</i><span>持久目标</span><i>→</i><span>真实验证</span><i>→</i><b>可交付结果</b></div>
+            <div className="final-message"><b>一句话原则</b><span>让 AI 的理解可见，让计划可审阅，让执行可持续，让结果有证据。</span></div>
+            <button className="restart-button" onClick={() => go(0)}>从头播放 ↺</button>
           </article>
         )}
       </section>
 
-      <footer className="controls">
-        <div className="progress-track"><span style={{ width: progress }} /></div>
+      {copied && <div className="copy-toast">已复制示例命令</div>}
+      <footer className="academy-footer">
+        <div className="progress"><span style={{ width: progress }} /></div>
         <button onClick={() => go(scene - 1)} disabled={scene === 0} aria-label="上一页">←</button>
-        <div><b>{String(scene + 1).padStart(2, "0")}</b><span>/ {String(scenes.length).padStart(2, "0")}</span><em>{navHint}</em></div>
-        <button onClick={() => go(scene + 1)} disabled={scene === scenes.length - 1} aria-label="下一页">→</button>
+        <div><b>{String(scene + 1).padStart(2, "0")}</b><span>/ {String(chapters.length).padStart(2, "0")}</span><em>{chapters[scene]}</em></div>
+        <button onClick={() => go(scene + 1)} disabled={scene === chapters.length - 1} aria-label="下一页">→</button>
       </footer>
     </main>
   );

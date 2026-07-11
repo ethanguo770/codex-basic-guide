@@ -6,8 +6,8 @@ const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Codex · 一个案例讲透开发闭环",
-  description: "用发布说明生成器案例演示 Plan、Mermaid、Ultra Goal、Browser、Review 与 Debugger。",
+  title: "Codex 命令科普 · 六个能力与配套案例",
+  description: "用真实案例讲清 Mermaid、Plan、Goal、UltraGoal、Browser、Review 与 Debugger 的作用与用法。",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
