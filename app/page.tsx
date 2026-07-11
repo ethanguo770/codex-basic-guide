@@ -197,7 +197,7 @@ export default function Home() {
         {scene === 2 && (
           <article className={`${lessonClass} mermaid-scene plan-mermaid-scene`}>
             <div className="section-no">01 · PLAN x 流程图（Mermaid）</div>
-            <div className="statement"><h2>Plan 负责想清楚怎么做，<br /><span>流程图（Mermaid）负责让人一眼看懂。</span></h2><p>一定要让 AI 多画图：只要出现流程、分支或模块关系，就同时输出图。人先看图找遗漏，让 AI 同步修改 Plan，确认后才写代码。</p></div>
+            <div className="statement"><h2>Plan 负责想清楚怎么做，<br /><span>流程图（Mermaid）负责让人一眼看懂。</span></h2><p>一定要让 AI 多画图：出现流程、分支或模块关系时就同时输出图。人看图找遗漏，AI 同步修改 Plan，确认后再写代码。</p></div>
             <Capability
               className={revealClass(1)}
               revealStep={revealStep}

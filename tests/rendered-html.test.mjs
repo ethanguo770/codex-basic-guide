@@ -86,7 +86,8 @@ test("covers every requested capability and keeps the editorial design accessibl
   assert.match(css, /capability-anatomy>div\.revealed/);
   assert.match(css, /reveal-block/);
   assert.match(css, /\.plan-mermaid-scene\{justify-content:flex-start/);
-  assert.match(css, /\.plan-mermaid-scene \.mermaid-layout\{height:286px/);
+  assert.match(css, /\.lesson:not\(\.cover\)\{justify-content:flex-start/);
+  assert.match(css, /\.plan-mermaid-scene \.mermaid-layout\{height:254px/);
   assert.doesNotMatch(css, /view-transition-name:lesson-stage|hf-accent-new/);
   assert.doesNotMatch(css, /infinite/);
   assert.match(design, /warm editorial|Claude-like/);
