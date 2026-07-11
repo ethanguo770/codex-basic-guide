@@ -56,14 +56,14 @@
 - Typography: Georgia-style editorial serif for teaching statements; Geist sans for explanation; Geist Mono for commands, asset IDs, and evidence
 - Spacing/layout rhythm: generous outer margins, 8px rhythm, asymmetric 40/60 and 45/55 split frames
 - Shape/radius/elevation: mostly square editorial panels, small radii on controls and asset cards, restrained shadows
-- Motion: two-phase 720ms paper cover; the old page is fully covered before the scene changes, so scenes never overlap. Inside each scene, information enters in reading order with short staggered reveals; reduced-motion fallback remains.
+- Motion: two-phase 720ms paper cover; the old page is fully covered before the scene changes, so scenes never overlap. Inside each scene, the mouse wheel advances one semantic reveal at a time; only after the final reveal does the next wheel action change chapter. Upward scrolling reverses the sequence.
 - Imagery/iconography: CSS 3D model proxy, metadata panels, flow diagrams; no stock art or authored SVG
 
 ## Components
 
 - Existing components to reuse: chapter navigation, command copy surface, progress footer
 - New/changed components: capability anatomy strip, native-vs-OMX comparison spread, asset lifecycle diagram, interactive 3D viewer proxy, review verdict, debugger trace
-- Variants and states: active chapter, recommended option, automatic Mermaid iteration, automatic browser-test progress, viewer angle, copied prompt
+- Variants and states: active chapter, reveal step, recommended option, wheel-controlled Mermaid iteration, wheel-controlled browser-test progress, viewer angle, copied prompt
 - Token/component ownership: CSS variables in `app/globals.css`; teaching content in `app/page.tsx`
 
 ## Accessibility
@@ -78,7 +78,7 @@
 
 - Supported devices: desktop presentation first; tablet/mobile reading supported
 - Layout adaptations: split frames stack; chapter rail becomes compact; comparison columns become vertical
-- Touch/hover differences: chapter navigation and prompt copy remain buttons; explanatory sequences advance automatically and never depend on discovering a hidden toggle
+- Touch/hover differences: wheel, arrow keys, and footer arrows all advance the same reveal state; chapter navigation jumps to a chapter; prompt copy remains an explicit button
 
 ## Interaction states
 
