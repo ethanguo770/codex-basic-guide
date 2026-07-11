@@ -33,6 +33,24 @@ function Command({ title, children, onCopy }: CommandProps) {
   );
 }
 
+type CapabilityProps = {
+  purpose: string;
+  when: string;
+  input: string;
+  output: string;
+};
+
+function Capability({ purpose, when, input, output }: CapabilityProps) {
+  return (
+    <div className="capability-anatomy">
+      <div><small>它的功能</small><strong>{purpose}</strong></div>
+      <div><small>什么时候用</small><span>{when}</span></div>
+      <div><small>你要提供</small><span>{input}</span></div>
+      <div><small>最后得到</small><span>{output}</span></div>
+    </div>
+  );
+}
+
 export default function Home() {
   const [scene, setScene] = useState(0);
   const [direction, setDirection] = useState(1);
@@ -154,6 +172,12 @@ export default function Home() {
           <article className={`${lessonClass} mermaid-scene`}>
             <div className="section-no">01 · MERMAID</div>
             <div className="statement"><h2>先别急着写上传代码，<br /><span>让 AI 把资产流程画出来。</span></h2><p>流程图一出现，人类马上能发现：格式失败怎么办？重复版本怎么办？谁有权发布？</p></div>
+            <Capability
+              purpose="把 AI 对业务与代码的理解，变成一张人类可以审阅的图"
+              when="流程分支多、跨前后端，或你担心 AI 理解错需求时"
+              input="相关代码范围、业务规则、需要标出的异常与权限"
+              output="Mermaid 源码、可视流程图，以及仍需人类确认的问题"
+            />
             <div className="mermaid-layout">
               <div className="mermaid-left">
                 <Command title="直接这样问" onCopy={copy}>{"不要修改代码。先把 3D 资产从上传、转换、预览、审核到发布的流程输出为 Mermaid；标出格式校验、重复版本、转换失败和权限分支。"}</Command>
@@ -176,6 +200,12 @@ export default function Home() {
           <article className={`${lessonClass} plan-scene`}>
             <div className="section-no">02 · PLAN × 流程图</div>
             <div className="statement"><h2>流程图讲“资产怎么流转”，<br /><span>Plan 讲“系统怎么实现”。</span></h2><p>两者一起用，业务、前端、后端和测试可以在写代码前对齐。</p></div>
+            <Capability
+              purpose="在修改代码前，生成可执行、可验证的实施方案"
+              when="需求跨多个模块、存在依赖或验收标准还不清楚时"
+              input="确认后的流程图、仓库现状、约束、优先级与成功标准"
+              output="需求摘要、验收条件、实施步骤、风险和验证方法"
+            />
             <div className="plan-spread">
               <div className="plan-prompt"><Command title="Plan 示例" onCopy={copy}>{'$plan --direct "根据确认后的 3D 资产生命周期流程图制定开发计划；包含资产库、上传、转换、在线预览、版本、权限、审核、测试和验收。"'}</Command><div className="plan-tip"><b>Plan 最少要有</b><span>模块与边界</span><span>开发顺序和依赖</span><span>失败与回滚策略</span><span>可以验证的完成标准</span></div></div>
               <div className="plan-paper"><small>3D 仿真资产平台 · 开发计划</small>{[["01","资产库与元数据","列表、搜索、标签、版本状态"],["02","上传与转换管线","分片上传、格式校验、异步转换"],["03","浏览器 3D 预览","模型、材质、尺寸和旋转查看"],["04","审核与权限","提交、退回、批准、发布审计"],["05","测试与验收","unit + API + Browser E2E + 性能"]].map(([n,t,d])=><div key={n}><b>{n}</b><span><strong>{t}</strong><em>{d}</em></span></div>)}</div>
@@ -188,6 +218,12 @@ export default function Home() {
           <article className={`${lessonClass} compare-scene`}>
             <div className="section-no">03 · GOAL VS OMX ULTRAGOAL</div>
             <div className="statement"><h2>Goal 适合一个明确改动，<br /><span>完整平台建议直接用 UltraGoal。</span></h2><p>UltraGoal 会把设计、实现、文档、测试和质量门拆成持久目标，并记录每一步证据。</p></div>
+            <Capability
+              purpose="Goal 保持一个目标持续可见；UltraGoal 管理一组长期子目标与检查点"
+              when="小改动需要明确完成标准，或大型任务需要跨多轮持续执行时"
+              input="目标、范围、约束、质量门，以及可以证明完成的证据"
+              output="Goal 状态；或 UltraGoal 的 brief、子目标、ledger 与最终质量报告"
+            />
             <div className="comparison">
               <div className="compare-card native"><div className="compare-title"><span>Codex 原生</span><h3>Goal</h3></div><p>像一张验收目标卡。适合范围清楚、步骤少、当前线程可以完成的任务。</p><Command title="平台里的用法" onCopy={copy}>{"创建 Goal：为资产列表增加标签筛选，并用浏览器测试证明 URL、筛选结果和空状态正确。"}</Command><ul><li>一个目标</li><li>一个成功标准</li><li>由当前线程持续推进</li></ul><div className="fit">适合：标签筛选、单个 Bug、小功能</div></div>
               <div className="versus">VS</div>
@@ -201,6 +237,12 @@ export default function Home() {
           <article className={`${lessonClass} browser-scene`}>
             <div className="section-no">04 · BROWSER PLUGIN</div>
             <div className="statement"><h2>系统写完以后，<br /><span>让 Browser 真的操作资产网站。</span></h2><p>它可以搜索资产、打开 3D 预览、旋转模型、提交审核，也可以把资产清单写入飞书云文档。</p></div>
+            <Capability
+              purpose="使用真实浏览器读取页面、执行操作并验证最终状态"
+              when="结果必须在网页、登录态或外部文档中被真实验证时"
+              input="目标网址、已授权的登录状态、操作步骤和断言"
+              output="页面结果、截图或断言证据，以及经授权创建的在线文档"
+            />
             <div className="mode-tabs"><button className={browserMode==="test"?"active":""} onClick={()=>setBrowserMode("test")}>网站自动化测试</button><button className={browserMode==="docs"?"active":""} onClick={()=>setBrowserMode("docs")}>输出飞书云文档</button></div>
             {browserMode === "test" ? (
               <div className="browser-spread">
@@ -217,6 +259,12 @@ export default function Home() {
           <article className={`${lessonClass} compare-scene review-compare`}>
             <div className="section-no">05 · REVIEW VS OMX CODE-REVIEW</div>
             <div className="statement"><h2>快速 Review 看当前改动，<br /><span>合并前建议用 OMX code-review。</span></h2><p>和 Goal / UltraGoal 类似：一个轻量直接，一个更独立、更完整、更适合作为质量门。</p></div>
+            <Capability
+              purpose="在不修改代码的前提下，找出可执行的问题并决定是否适合合并"
+              when="完成功能、准备提 PR，或 UltraGoal 进入最终质量门时"
+              input="代码 diff、原始需求、架构约束和应该通过的测试"
+              output="严重级别、file:line 证据、修复建议，以及合并结论"
+            />
             <div className="comparison">
               <div className="compare-card native"><div className="compare-title"><span>Codex 快速入口</span><h3>Review</h3></div><p>检查一个文件或一段 diff，快速找明显 Bug、性能问题和测试缺口。</p><Command title="平台里的用法" onCopy={copy}>{"/review 检查本次 3D 文件上传逻辑，重点看文件校验、权限、错误处理和测试。"}</Command><ul><li>速度快</li><li>适合开发中的小改动</li><li>结论依赖当前审查上下文</li></ul><div className="fit">适合：边写边检查</div></div>
               <div className="versus">VS</div>
@@ -230,6 +278,12 @@ export default function Home() {
           <article className={`${lessonClass} debug-scene`}>
             <div className="section-no">06 · DEBUGGER</div>
             <div className="statement"><h2>部分模型预览变黑时，<br /><span>Debugger 先证明根因，再改代码。</span></h2><p>“预览失败”只是症状。Debugger 会先找出稳定复现条件，再验证究竟是材质、贴图、格式还是浏览器问题。</p></div>
+            <Capability
+              purpose="把模糊症状转化为稳定复现、已证明根因和最小修复"
+              when="Bug 偶发、只在特定环境出现，或多次修改仍然复发时"
+              input="症状、期望行为、复现线索、日志和最近变更"
+              output="复现步骤、根因证据、最小补丁和防止复发的回归测试"
+            />
             <div className="debug-spread">
               <div><Command title="Debugger 提示词" onCopy={copy}>{"使用 debugger 智能体调查：WH-031 在 Windows 正常，但部署到 Linux 后 3D 预览变黑。先稳定复现，不要先改代码；输出时间线、根因、最小修复和回归测试。"}</Command><div className="debug-analogy"><b>像侦探一样工作</b><span>症状：模型变黑</span><span>证据：只有 Linux 失败</span><span>根因必须能被测试证明</span></div></div>
               <div className="timeline"><small>DEBUG TRACE · WH-031</small>{[["T+00","读取 glTF 材质","baseColorTexture","ok"],["T+12","请求 BaseColor.PNG","Windows 200","ok"],["T+13","Linux 区分大小写","basecolor.png 404","bad"],["FIX","上传时规范化贴图名","重写 glTF URI","good"],["TEST","三种系统运行 30 组资产","30 / 30 通过","good"]].map(([t,e,r,s])=><div key={t} className={s}><b>{t}</b><span>{e}</span><em>{r}</em></div>)}</div>

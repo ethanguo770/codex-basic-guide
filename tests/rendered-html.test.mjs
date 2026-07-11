@@ -45,6 +45,10 @@ test("covers every requested capability and keeps the editorial design accessibl
   ]) assert.match(page, new RegExp(required));
 
   assert.match(page, /本教程推荐/);
+  assert.match(page, /它的功能/);
+  assert.match(page, /什么时候用/);
+  assert.match(page, /你要提供/);
+  assert.match(page, /最后得到/);
   assert.doesNotMatch(page, /小游戏|VISUALIZE|\bVIS\b/);
   assert.match(css, /prefers-reduced-motion/);
   assert.doesNotMatch(css, /infinite/);

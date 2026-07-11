@@ -36,6 +36,7 @@
 - One idea per scene; hide secondary detail until the primary point is understood
 - Demonstrate every command inside the same asset lifecycle: upload → convert → preview → review → publish
 - Compare native Codex and OMX with parallel structure and an explicit recommendation
+- Give every capability the same four-part anatomy: function, use moment, required input, final output
 - Tradeoff: less reference density in exchange for beginner comprehension
 
 ## Visual language
@@ -50,7 +51,7 @@
 ## Components
 
 - Existing components to reuse: chapter navigation, command copy surface, progress footer
-- New/changed components: native-vs-OMX comparison spread, asset lifecycle diagram, interactive 3D viewer proxy, review verdict, debugger trace
+- New/changed components: capability anatomy strip, native-vs-OMX comparison spread, asset lifecycle diagram, interactive 3D viewer proxy, review verdict, debugger trace
 - Variants and states: active chapter, recommended option, selected asset, viewer angle, copied prompt
 - Token/component ownership: CSS variables in `app/globals.css`; teaching content in `app/page.tsx`
 
