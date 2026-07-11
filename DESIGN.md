@@ -1,37 +1,96 @@
-# Codex Field Guide Visual System
+# Design
 
-## Style Prompt
+## Source of truth
 
-Technical editorial presentation with the rhythm of a HyperFrames explainer: near-black green-tinted canvas, warm paper-white type, one mint accent, amber reserved for decisions and warnings, and restrained violet only for OMX multi-agent concepts. Layouts use asymmetric split frames, oversized chapter typography, thin structural rules, and real terminal or browser content. Motion establishes hierarchy through staggered entrances and smooth directional pushes; the frame settles after each build phase so the audience can read.
+- Status: Active
+- Last refreshed: 2026-07-11
+- Primary product surfaces: single-page, full-screen interactive teaching deck
+- Evidence reviewed: current React/CSS site, prior HyperFrames motion direction, user feedback requesting beginner clarity, Claude-like hierarchy, and a single 3D simulation asset-management case
 
-## Colors
+## Brand
 
-- Canvas: `#07100f`
-- Surface: `#0d1715`
-- Primary text: `#eef4ef`
-- Muted text: `#94a69f`
-- Primary accent: `#73e6b6`
-- Decision accent: `#f0b35a`
-- OMX accent: `#9e8cff`
-- Error: `#ff766f`
+- Personality: patient technical tutor, warm editorial notebook, quietly confident
+- Trust signals: realistic asset records, explicit command comparisons, visible inputs/outputs, concrete verification evidence
+- Avoid: dense admin dashboards, neon cyberpunk styling, unexplained 3D jargon, equal-weight card grids, decorative motion without teaching value
 
-## Typography
+## Product goals
 
-- Statements and body: Geist, using 300-350 for body and 850-900 for display
-- Commands, evidence, numbers: Geist Mono with tabular numerals and disabled ligatures
+- Goals: help first-time Codex users understand six capabilities by following development of a 3D simulation asset-management website
+- Non-goals: building a production WebGL engine, exhaustive CLI reference, copying another product’s visual identity
+- Success signals: viewers can explain which command to use for understanding, planning, long execution, browser validation, review, and debugging
 
-## Motion
+## Personas and jobs
 
-- Primary transition: 520ms directional push with 10px focus blur and cubic-bezier equivalent to power3.out
-- Topic changes: two staggered cover panels followed by content entrance
-- Entrances: 160-700ms, importance-first, total stagger under 500ms
-- No exit choreography; the scene transition handles the outgoing page
-- One finite ambient movement per scene, then stillness
+- Primary personas: developers, technical artists, simulation teams, and product teammates new to Codex/OMX
+- User jobs: choose the right command, copy a useful prompt, understand expected outputs, and see why OMX adds value
+- Key contexts of use: internal sharing, onboarding, live presentation, self-guided reading
 
-## What NOT to Do
+## Information architecture
 
-- No infinite rotation, bouncing, or pulsing
-- No identical card grids with equal visual weight
-- No rainbow gradients or cyan-purple glow soup
-- No content appearing fully formed without entrance hierarchy
-- No tiny dashboard typography or decorative charts without explanatory value
+- Primary navigation: linear chapters with keyboard, wheel, and chapter rail
+- Core screens: cover, platform brief, Mermaid, Plan, Goal comparison, Browser demo, Review comparison, Debugger, summary
+- Content hierarchy: one large teaching statement → one concrete 3D asset example → one takeaway or recommendation
+
+## Design principles
+
+- One idea per scene; hide secondary detail until the primary point is understood
+- Demonstrate every command inside the same asset lifecycle: upload → convert → preview → review → publish
+- Compare native Codex and OMX with parallel structure and an explicit recommendation
+- Tradeoff: less reference density in exchange for beginner comprehension
+
+## Visual language
+
+- Color: warm paper `#F4F0E8`, ink `#282522`, muted clay `#756D65`, coral `#D97757`, sage `#78917A`, pale panels `#E9E2D7`, dark 3D viewport `#252826`
+- Typography: Georgia-style editorial serif for teaching statements; Geist sans for explanation; Geist Mono for commands, asset IDs, and evidence
+- Spacing/layout rhythm: generous outer margins, 8px rhythm, asymmetric 40/60 and 45/55 split frames
+- Shape/radius/elevation: mostly square editorial panels, small radii on controls and asset cards, restrained shadows
+- Motion: 450–650ms page push, short importance-first stagger, finite CSS 3D rotations only when the user acts, reduced-motion fallback
+- Imagery/iconography: CSS 3D model proxy, metadata panels, flow diagrams; no stock art or authored SVG
+
+## Components
+
+- Existing components to reuse: chapter navigation, command copy surface, progress footer
+- New/changed components: native-vs-OMX comparison spread, asset lifecycle diagram, interactive 3D viewer proxy, review verdict, debugger trace
+- Variants and states: active chapter, recommended option, selected asset, viewer angle, copied prompt
+- Token/component ownership: CSS variables in `app/globals.css`; teaching content in `app/page.tsx`
+
+## Accessibility
+
+- Target standard: WCAG AA where practical
+- Keyboard/focus behavior: arrow/Page keys navigate; all controls use native buttons
+- Contrast/readability: dark ink on warm paper; high-contrast code panels
+- Screen-reader semantics: labeled chapter navigation and live scene updates
+- Reduced motion: `prefers-reduced-motion` collapses animation duration
+
+## Responsive behavior
+
+- Supported devices: desktop presentation first; tablet/mobile reading supported
+- Layout adaptations: split frames stack; chapter rail becomes compact; comparison columns become vertical
+- Touch/hover differences: hover is supplementary; all core actions are buttons
+
+## Interaction states
+
+- Loading: static first frame
+- Empty: asset library explains what will appear after upload
+- Error: failed conversion or missing texture state is described in plain language
+- Success: approved/published state shows evidence
+- Disabled: lower contrast while preserving labels
+- Offline/slow network: self-contained after load
+
+## Content voice
+
+- Tone: plain Chinese, short sentences, jargon explained immediately
+- Terminology: “原生 Goal” vs “OMX UltraGoal”; “快速 Review” vs “OMX code-review”
+- Microcopy: every scene answers “它做什么 / 什么时候用 / 在这个平台里怎么用”
+
+## Implementation constraints
+
+- Framework: vinext/React with repo-native CSS
+- Tokens: one warm editorial palette; coral for action; sage for verified success
+- Performance: no added dependencies and no infinite animations
+- Compatibility: Cloudflare Worker-compatible build; localhost fallback retained
+- Verification: lint, build, rendered HTML assertions, local HTTP check
+
+## Open questions
+
+- [ ] Whether to add presenter notes in a later iteration / owner: user / impact: optional
