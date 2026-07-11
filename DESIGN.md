@@ -24,8 +24,8 @@
 - Page title: `Codex小技巧`
 - Mermaid turns long text into a flowchart people can review together.
 - Plan lists what to do, in what order, and how to check completion before coding starts.
-- UltraGoal breaks a large project into smaller jobs, remembers progress, and keeps going until the work is checked.
-- Browser lets AI operate the real page, verify visible results, and write approved outputs to external documents.
+- UltraGoal persists the project plan and progress, resumes across sessions, retries failed work, supports evidence-backed steering, and only finishes after testing and independent review pass.
+- Browser completes full browser-based test flows and can create, format, fill, and verify authorized Feishu cloud documents.
 - CodeReview asks independent reviewers to find problems before code is merged.
 - Debugger reproduces a bug, follows the clues, proves the real cause, and prevents it from returning.
 - Unifying thesis: first understand the work, then let AI do it, and finally verify the result.
@@ -92,7 +92,7 @@
 ## Content voice
 
 - Tone: plain Chinese, short sentences, jargon explained immediately
-- Terminology: “原生 Goal” vs “OMX UltraGoal”; “快速 Review” vs “OMX CodeReview”
+- Terminology: “PLAN x Mermaid”; “原生 Goal” vs “OMX UltraGoal”; “快速 Review” vs “OMX CodeReview”
 - Microcopy: every scene first answers “它能帮你做什么”，then shows the 3D asset case, a prompt, and the result
 
 ## Implementation constraints

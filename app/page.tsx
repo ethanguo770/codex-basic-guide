@@ -188,7 +188,7 @@ export default function Home() {
             <div className={revealClass(1, "platform-brief")}>
               <div className="asset-definition"><small>什么是一个 3D 仿真资产？</small><h3>文件 + 数据 + 流程</h3><div className="asset-stack"><span><b>01</b>GLB / FBX 模型</span><span><b>02</b>贴图与材质</span><span><b>03</b>名称、标签、尺寸</span><span><b>04</b>版本与审核记录</span><span><b>05</b>发布到仿真环境</span></div></div>
               <div className="lifecycle"><small>核心流程</small>{[["上传","技术美术提交模型"],["转换","生成统一格式与缩略图"],["预览","浏览器检查模型和贴图"],["审核","负责人通过或退回"],["发布","进入正式仿真资产库"]].map(([t,d],i)=><div key={t}><b>0{i+1}</b><span><strong>{t}</strong><em>{d}</em></span></div>)}</div>
-              <div className="capability-route"><small>六个技巧分别解决什么问题</small><div><b>Mermaid</b><span><strong>把流程画清楚</strong><em>避免一开始就理解错</em></span></div><div><b>Plan</b><span><strong>先列清楚做法</strong><em>避免做到一半返工</em></span></div><div><b>UltraGoal</b><span><strong>把大任务拆开做</strong><em>中途停下也能继续</em></span></div><div><b>Browser</b><span><strong>真的操作网页</strong><em>不靠猜页面结果</em></span></div><div><b>CodeReview</b><span><strong>合并前再检查</strong><em>找出自己没看到的问题</em></span></div><div><b>Debugger</b><span><strong>先找到真正原因</strong><em>避免乱改代码</em></span></div></div>
+              <div className="capability-route"><small>六个技巧分别解决什么问题</small><div><b>Mermaid</b><span><strong>把流程画清楚</strong><em>避免一开始就理解错</em></span></div><div><b>Plan</b><span><strong>先列清楚做法</strong><em>避免做到一半返工</em></span></div><div><b>UltraGoal</b><span><strong>让大项目持续跑到完成</strong><em>中断、失败也能接着做</em></span></div><div><b>Browser</b><span><strong>自动测试 + 写飞书</strong><em>替你操作真实网页</em></span></div><div><b>CodeReview</b><span><strong>合并前再检查</strong><em>找出自己没看到的问题</em></span></div><div><b>Debugger</b><span><strong>先找到真正原因</strong><em>避免乱改代码</em></span></div></div>
             </div>
             <div className={revealClass(2, "plain-note")}><b>给小白的比喻</b><span>平台像一个 3D 模型仓库：每个模型有身份证、历史版本、质检记录和正式上架状态。</span></div>
           </article>
@@ -226,7 +226,7 @@ export default function Home() {
 
         {scene === 3 && (
           <article className={`${lessonClass} plan-scene`}>
-            <div className="section-no">02 · PLAN × 流程图</div>
+            <div className="section-no">02 · PLAN x Mermaid</div>
             <div className="statement"><h2>Plan：<br /><span>开始写代码前，先把怎么做列清楚。</span></h2><p>它会告诉你先做什么、后做什么、要改哪些地方，以及最后怎样检查功能是否真的完成。</p></div>
             <Capability
               className={revealClass(1)}
@@ -247,47 +247,47 @@ export default function Home() {
         {scene === 4 && (
           <article className={`${lessonClass} compare-scene`}>
             <div className="section-no">03 · GOAL VS OMX ULTRAGOAL</div>
-            <div className="statement"><h2>Goal 盯住一个任务，<br /><span>UltraGoal 帮你持续推进一个大项目。</span></h2><p>Goal 适合一个小功能；UltraGoal 会把大项目拆开、记录进度，即使中途停下来也能接着做。</p></div>
+            <div className="statement"><h2>Goal 盯住一个任务，<br /><span>UltraGoal 把一个大项目持续做到验收通过。</span></h2><p>它不只是“拆任务”：进度会保存在项目里；中断后可以继续，失败后可以重试，检查不通过就不会假装已经完成。</p></div>
             <Capability
               className={revealClass(1)}
               revealStep={revealStep}
-              purpose="Goal 负责一个明确任务；UltraGoal 把一个大项目拆成多件小事并持续完成。"
-              when="小功能用 Goal；涉及设计、开发、测试等多个阶段时用 UltraGoal。"
-              input="想完成什么、哪些事情不要做，以及最后怎样才算成功。"
-              output="Goal 会持续跟踪一个任务；UltraGoal 还会记录子任务、进度和检查结果。"
+              purpose="Goal 完成一个明确任务；UltraGoal 会自动拆解并持续推进整个项目，直到真正通过验收。"
+              when="任务横跨设计、开发、测试、Review 或性能排查，今天做不完、明天还要继续时。"
+              input="最终目标、不能触碰的边界、怎样才算完成，以及必须通过哪些检查。"
+              output="保存下来的任务与进度、每一步的结果、失败记录，以及通过测试和 Review 的最终产物。"
             />
             <div className={revealClass(3, "comparison")}>
               <div className="compare-card native"><div className="compare-title"><span>Codex 原生</span><h3>Goal</h3></div><p>像一张验收目标卡。适合范围清楚、步骤少、当前线程可以完成的任务。</p><Command title="平台里的用法" onCopy={copy}>{"创建 Goal：为资产列表增加标签筛选，并用浏览器测试证明 URL、筛选结果和空状态正确。"}</Command><ul><li>一个目标</li><li>一个成功标准</li><li>由当前线程持续推进</li></ul><div className="fit">适合：标签筛选、单个 Bug、小功能</div></div>
               <div className="versus">VS</div>
-              <div className="compare-card recommended"><div className="recommended-badge">本教程推荐</div><div className="compare-title"><span>Oh My Codex</span><h3>UltraGoal</h3></div><p>像一份会自动记录进度的项目清单。它会把大项目拆开，一件一件完成。</p><Command title="大项目案例" onCopy={copy}>{'omx ultragoal create-goals --brief "开发 3D 仿真资产管理网站：页面设计、资产接口、上传转换、3D 预览、版本审核、文档、网页测试和加载速度检查"'}</Command><ul><li>把项目拆成小任务</li><li>每完成一步都会保存进度</li><li>最后统一运行测试和代码检查</li></ul><div className="fit strong">适合：完整平台、较长任务、性能排查</div></div>
+              <div className="compare-card recommended"><div className="recommended-badge">本教程推荐</div><div className="compare-title"><span>Oh My Codex</span><h3>UltraGoal</h3></div><p>像一位会记住全部进度的项目负责人：自己安排下一步，遇到失败留下记录，修好后继续，最终用测试和独立 Review 把关。</p><Command title="完整项目案例" onCopy={copy}>{'omx ultragoal create-goals --brief "开发 3D 仿真资产管理网站：完成页面设计、资产接口、上传转换、3D 预览、版本审核、飞书文档、浏览器自动化测试和加载速度排查；所有测试与 CodeReview 通过后才算完成"'}</Command><ul><li>进度保存在项目里，换会话仍能继续</li><li>失败会留下原因，可以从失败任务重试</li><li>测试、CodeReview 和整体设计检查全部通过才结束</li></ul><div className="fit strong">适合：完整平台、较长任务、性能排查</div></div>
             </div>
-            <div className={revealClass(4, "recommendation coral")}><b>建议</b><span>一个小改动用 Goal；只要涉及多个阶段、自动化测试或性能排查，就优先用 OMX UltraGoal。</span></div>
+            <div className={revealClass(4, "recommendation coral")}><b>真正强的地方</b><span>UltraGoal 把目标、进度、失败和验证结果都保存下来；执行中发现新问题，还能根据证据调整后续任务。它追求的不是“AI 跑了很久”，而是“项目真的交付并通过检查”。</span></div>
           </article>
         )}
 
         {scene === 5 && (
           <article className={`${lessonClass} browser-scene`}>
             <div className="section-no">04 · BROWSER PLUGIN</div>
-            <div className="statement"><h2>Browser：<br /><span>让 AI 真的打开网页操作和检查。</span></h2><p>它不再只看代码猜结果，而是像用户一样搜索、点击、旋转模型、提交表单并确认页面变化。</p></div>
+            <div className="statement"><h2>Browser 插件：<br /><span>自动完成网页测试，也能自动编写飞书云文档。</span></h2><p>给它网址、步骤和正确结果，它可以从头跑完整测试并留下证据；测试结束后，还能打开已授权的飞书，把结果整理成正式文档。</p></div>
             <Capability
               className={revealClass(1)}
               revealStep={revealStep}
-              purpose="让 AI 像真实用户一样操作网页，确认功能不是只在代码里看起来正确。"
-              when="你必须确认网页真的能用，或者需要把结果写进飞书文档时。"
-              input="网址、要做哪些操作、应该看到什么结果，以及已经授权的登录状态。"
-              output="真实页面结果、测试证据，或者已经整理好的飞书云文档。"
+              purpose="替你完成两类重复工作：全流程网页自动化测试，以及打开飞书编写云文档。"
+              when="需要完整验证一条用户流程，或者要把测试和项目结果正式整理进飞书时。"
+              input="测试网址、操作步骤、正确结果；或飞书文档位置、内容结构和已授权的登录状态。"
+              output="自动化测试记录、页面状态与截图，以及已经写入并校对好的飞书云文档。"
             />
             <div className={revealClass(3, "browser-sequence")}>
               <section className={revealClass(3, "browser-phase test-phase")}>
-                <div className="phase-heading"><b>01</b><span><strong>先验证网站</strong><small>自动完成搜索、预览、旋转和提交，并确认页面结果</small></span></div>
+                <div className="phase-heading"><b>01</b><span><strong>自动跑完整测试</strong><small>从打开页面到输出结果，整条流程自动完成</small></span></div>
                 <div className="browser-spread">
                   <div className="browser-instruction"><Command title="Browser 测试提示词" onCopy={copy}>{"打开本地 3D 资产网站；搜索 PUMP-204，进入详情，旋转模型确认预览可用，提交审核，并确认状态从“草稿”变成“待审核”。"}</Command><div className="test-log"><small>AUTOMATION STEPS · 随滚轮推进</small><span className={testStatus!=="idle"?"done":"active"}>1. 搜索 PUMP-204</span><span className={angle>=1?"done":""}>2. 打开 3D 预览</span><span className={angle>=2?"done":""}>3. 旋转检查模型</span><span className={angle>=3?"done":""}>4. 读取资产信息</span><span className={testStatus==="passed"?"done":""}>5. 确认结果正确</span></div></div>
                   <div className="mini-browser"><div className="mini-bar"><i/><i/><i/><span>localhost:3000/assets/PUMP-204</span></div><div className="asset-app"><aside><div className="asset-row active"><b>P</b><span>离心泵</span></div><div className="asset-row"><b>R</b><span>机械臂</span></div><div className="asset-row"><b>W</b><span>自动仓库</span></div></aside><section><div className="viewer"><div className={`model-proxy angle-${angle}`}><i className="front"/><i className="back"/><i className="right"/><i className="left"/><i className="top"/><i className="bottom"/><span/></div><div className="viewer-grid"/>{testStatus==="passed"&&<em>✓ 预览测试通过</em>}</div><div className="asset-meta"><small>{assetInfo[0]}</small><h3>{assetInfo[1]}</h3><p>GLB · 42.8 MB · {assetInfo[2]}</p><div><span>状态</span><b>{testStatus==="passed"?"待审核":"草稿"}</b></div><div><span>贴图</span><b>8 / 8 正常</b></div><div><span>三角面</span><b>124,860</b></div></div></section></div></div>
                 </div>
               </section>
               <section className={revealClass(5, "browser-phase docs-phase")}>
-                <div className="phase-heading"><b>02</b><span><strong>再沉淀文档</strong><small>把验证结果写入已授权的飞书云文档</small></span></div>
-                <div className="docs-compact"><Command title="飞书文档提示词" onCopy={copy}>{"读取资产库中本周新增、待审核和转换失败的 3D 资产；打开飞书云文档，生成《仿真资产周报》，包含资产清单、风险、负责人和下周计划。"}</Command><div className="permission-note"><b>注意</b><span>写入真实飞书需要登录状态和明确授权。</span></div><div className="doc-page"><small>仿真资产周报 · Week 28</small><h3>3D Asset Operations</h3><p>本周新增 42 个资产，已审核 31 个，转换失败 3 个。</p><h4>需要关注</h4><div className="doc-table"><span>PUMP-204 <b>已审核</b></span><span>ROBOT-018 <b>待审核</b></span><span>WH-031 <b>贴图缺失</b></span></div><em>Browser 已完成录入与校对</em></div></div>
+                <div className="phase-heading"><b>02</b><span><strong>自动编写飞书云文档</strong><small>打开已授权的飞书，创建、排版、填写并校对文档</small></span></div>
+                <div className="docs-compact"><Command title="飞书文档提示词" onCopy={copy}>{"根据刚才的自动化测试结果和资产库数据，打开飞书云文档，创建《仿真资产周报》；填写资产清单、测试结果、风险、负责人和下周计划，完成排版并检查内容是否写入成功。"}</Command><div className="permission-note"><b>只需提前准备</b><span>保持飞书登录，并明确授权 AI 创建或修改目标文档。</span></div><div className="doc-page"><small>仿真资产周报 · Week 28</small><h3>3D Asset Operations</h3><p>本周新增 42 个资产，已审核 31 个，转换失败 3 个。</p><h4>需要关注</h4><div className="doc-table"><span>PUMP-204 <b>自动化测试通过</b></span><span>ROBOT-018 <b>待审核</b></span><span>WH-031 <b>贴图缺失</b></span></div><em>Browser 已完成创建、录入、排版与校对</em></div></div>
               </section>
             </div>
           </article>
@@ -338,7 +338,7 @@ export default function Home() {
           <article className={`${lessonClass} summary-scene`}>
             <div className="section-no">07 · 现在你会选了</div>
             <div className="summary-title"><h2>六个小技巧，<br /><span>各自解决一个常见问题。</span></h2><p>先看看自己现在卡在哪里，再选择对应的能力。</p></div>
-            <div className={revealClass(1, "summary-list")}>{[["Mermaid","流程太复杂，看不懂","最后得到：一张大家都确认过的流程图"],["Plan","知道要做什么，却不知道怎么开始","最后得到：有顺序、有检查方法的开发计划"],["OMX UltraGoal","任务太大，一次做不完","最后得到：拆开的小任务、完成进度和检查记录"],["Browser","代码写好了，但不知道网页是否真能用","最后得到：真实页面结果、截图或飞书文档"],["OMX CodeReview","自己写的代码容易看漏问题","最后得到：问题位置、修改建议和是否合并的结论"],["Debugger","只看到了 Bug，却不知道真正原因","最后得到：复现方法、真正原因、修改和防复发测试"]].map(([n,w,d],i)=><div key={n}><b>0{i+1}</b><span><strong>{n}</strong><small>{w}</small></span><p>{d}</p></div>)}</div>
+            <div className={revealClass(1, "summary-list")}>{[["Mermaid","流程太复杂，看不懂","最后得到：一张大家都确认过的流程图"],["Plan","知道要做什么，却不知道怎么开始","最后得到：有顺序、有检查方法的开发计划"],["OMX UltraGoal","大项目跨很多阶段，容易中断或漏验收","最后得到：可恢复的执行进度，以及通过测试和 Review 的完整产物"],["Browser","测试网页和写飞书文档太重复","最后得到：完整自动化测试证据，以及已编写好的飞书云文档"],["OMX CodeReview","自己写的代码容易看漏问题","最后得到：问题位置、修改建议和是否合并的结论"],["Debugger","只看到了 Bug，却不知道真正原因","最后得到：复现方法、真正原因、修改和防复发测试"]].map(([n,w,d],i)=><div key={n}><b>0{i+1}</b><span><strong>{n}</strong><small>{w}</small></span><p>{d}</p></div>)}</div>
             <div className={revealClass(2, "closing")}><b>给小白的一句话</b><span>先让 AI 把系统讲明白，再让 UltraGoal 自动做；每一步都要求留下可以检查的证据。</span></div>
             <button className={revealClass(2, "restart")} onClick={()=>go(0)}>从头再看一次 ↺</button>
           </article>

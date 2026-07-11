@@ -37,7 +37,7 @@ test("covers every requested capability and keeps the editorial design accessibl
 
   for (const required of [
     "flowchart TD",
-    "PLAN × 流程图",
+    "PLAN x Mermaid",
     "GOAL VS OMX ULTRAGOAL",
     "BROWSER PLUGIN",
     "REVIEW VS OMX CODEREVIEW",
@@ -52,10 +52,14 @@ test("covers every requested capability and keeps the editorial design accessibl
   assert.match(page, /Codex小技巧/);
   assert.match(page, /把一大段文字变成流程图/);
   assert.match(page, /开始写代码前，先把怎么做列清楚/);
-  assert.match(page, /持续推进一个大项目/);
-  assert.match(page, /真的打开网页操作和检查/);
+  assert.match(page, /持续做到验收通过/);
+  assert.match(page, /自动完成网页测试，也能自动编写飞书云文档/);
   assert.match(page, /请另一组 AI 帮你挑问题/);
   assert.match(page, /先查清 Bug 为什么发生/);
+  assert.match(page, /换会话仍能继续/);
+  assert.match(page, /从失败任务重试/);
+  assert.match(page, /自动跑完整测试/);
+  assert.match(page, /自动编写飞书云文档/);
   assert.match(page, /transitionLock/);
   assert.match(page, /setTransitioning/);
   assert.match(page, /sceneMaxSteps/);
