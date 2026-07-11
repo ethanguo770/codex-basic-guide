@@ -90,6 +90,8 @@ test("covers every requested capability and keeps the editorial design accessibl
   assert.match(css, /\.plan-mermaid-scene\{justify-content:flex-start/);
   assert.match(css, /\.lesson:not\(\.cover\)\{justify-content:flex-start/);
   assert.match(css, /\.lesson\.plan-mermaid-scene\{justify-content:center;padding-top:18px;padding-bottom:18px/);
+  assert.match(css, /Desktop readability pass/);
+  assert.match(css, /capability-anatomy\{grid-template-columns:repeat\(4,1fr\)/);
   assert.match(css, /\.plan-mermaid-scene \.mermaid-layout\{height:254px/);
   assert.doesNotMatch(css, /view-transition-name:lesson-stage|hf-accent-new/);
   assert.doesNotMatch(css, /infinite/);
