@@ -7,7 +7,7 @@ const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"]
 
 export const metadata: Metadata = {
   title: "Codex小技巧",
-  description: "面向新手，用一个 3D 资产平台讲清 PLAN x Mermaid、UltraGoal、Browser、CodeReview 与 Debugger。",
+  description: "面向新手，用一个 3D 资产平台讲清 PLAN x 流程图（Mermaid）、UltraGoal、Browser、OMX CodeReview 与 Debugger。",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

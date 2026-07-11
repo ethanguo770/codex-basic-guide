@@ -37,7 +37,7 @@ test("covers every requested capability and keeps the editorial design accessibl
 
   for (const required of [
     "flowchart TD",
-    "PLAN x Mermaid",
+    "PLAN x 流程图（Mermaid）",
     "GOAL VS OMX ULTRAGOAL",
     "BROWSER PLUGIN",
     "REVIEW VS OMX CODEREVIEW",
@@ -51,11 +51,12 @@ test("covers every requested capability and keeps the editorial design accessibl
   assert.match(page, /它会交给你/);
   assert.match(page, /Codex小技巧/);
   assert.match(page, /Plan 负责想清楚怎么做/);
-  assert.match(page, /Mermaid 负责让人一眼看懂并检查/);
-  assert.match(page, /AI 输出 Plan \+ Mermaid → 人看图 Review/);
+  assert.match(page, /流程图（Mermaid）负责让人一眼看懂/);
+  assert.match(page, /一定要让 AI 多画图/);
+  assert.match(page, /AI 输出 Plan \+ 流程图 → 人看图 Review/);
   assert.match(page, /持续做到验收通过/);
   assert.match(page, /自动完成网页测试，也能自动编写飞书云文档/);
-  assert.match(page, /请另一组 AI 帮你挑问题/);
+  assert.match(page, /请独立的 AI 审查组帮你挑问题/);
   assert.match(page, /先查清 Bug 为什么发生/);
   assert.match(page, /换会话仍能继续/);
   assert.match(page, /从失败任务重试/);
@@ -63,6 +64,10 @@ test("covers every requested capability and keeps the editorial design accessibl
   assert.match(page, /自动编写飞书云文档/);
   assert.match(page, /复制云文档链接 → 粘贴到 Codex Chrome 插件/);
   assert.match(page, /已授权的飞书云文档链接/);
+  assert.match(page, /OMX CodeReview：/);
+  assert.match(page, /github\.com\/Yeachan-Heo\/oh-my-codex/);
+  assert.match(page, /\$deep-interview/);
+  assert.match(page, /\$ultraqa/);
   assert.match(page, /transitionLock/);
   assert.match(page, /setTransitioning/);
   assert.match(page, /sceneMaxSteps/);
@@ -80,6 +85,8 @@ test("covers every requested capability and keeps the editorial design accessibl
   assert.match(page, /capability-cell/);
   assert.match(css, /capability-anatomy>div\.revealed/);
   assert.match(css, /reveal-block/);
+  assert.match(css, /\.plan-mermaid-scene\{justify-content:flex-start/);
+  assert.match(css, /\.plan-mermaid-scene \.mermaid-layout\{height:286px/);
   assert.doesNotMatch(css, /view-transition-name:lesson-stage|hf-accent-new/);
   assert.doesNotMatch(css, /infinite/);
   assert.match(design, /warm editorial|Claude-like/);

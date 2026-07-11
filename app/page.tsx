@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-const chapters = ["开场", "认识平台", "PLAN x Mermaid", "UltraGoal", "Browser", "CodeReview", "Debugger", "总结"];
-const sceneMaxSteps = [2, 2, 5, 4, 5, 4, 4, 2] as const;
+const chapters = ["开场", "认识平台", "PLAN x 流程图", "UltraGoal", "Browser", "OMX CodeReview", "Debugger", "总结", "附录"];
+const sceneMaxSteps = [2, 2, 5, 4, 5, 4, 4, 2, 3] as const;
 
 const flowV1 = `flowchart LR
   A[上传 3D 文件] --> B[生成预览]
@@ -188,7 +188,7 @@ export default function Home() {
             <div className={revealClass(1, "platform-brief")}>
               <div className="asset-definition"><small>什么是一个 3D 仿真资产？</small><h3>文件 + 数据 + 流程</h3><div className="asset-stack"><span><b>01</b>GLB / FBX 模型</span><span><b>02</b>贴图与材质</span><span><b>03</b>名称、标签、尺寸</span><span><b>04</b>版本与审核记录</span><span><b>05</b>发布到仿真环境</span></div></div>
               <div className="lifecycle"><small>核心流程</small>{[["上传","技术美术提交模型"],["转换","生成统一格式与缩略图"],["预览","浏览器检查模型和贴图"],["审核","负责人通过或退回"],["发布","进入正式仿真资产库"]].map(([t,d],i)=><div key={t}><b>0{i+1}</b><span><strong>{t}</strong><em>{d}</em></span></div>)}</div>
-              <div className="capability-route"><small>五个技巧分别解决什么问题</small><div><b>PLAN x Mermaid</b><span><strong>文字计划和流程图一起看</strong><em>先让人看懂并确认，再写代码</em></span></div><div><b>UltraGoal</b><span><strong>让大项目持续跑到完成</strong><em>中断、失败也能接着做</em></span></div><div><b>Browser</b><span><strong>自动测试 + 写飞书</strong><em>替你操作真实网页</em></span></div><div><b>CodeReview</b><span><strong>合并前再检查</strong><em>找出自己没看到的问题</em></span></div><div><b>Debugger</b><span><strong>先找到真正原因</strong><em>避免乱改代码</em></span></div></div>
+              <div className="capability-route"><small>五个技巧分别解决什么问题</small><div><b>PLAN x 流程图</b><span><strong>文字计划和图一起看</strong><em>让 AI 多画图，人更容易确认</em></span></div><div><b>UltraGoal</b><span><strong>让大项目持续跑到完成</strong><em>中断、失败也能接着做</em></span></div><div><b>Browser</b><span><strong>自动测试 + 写飞书</strong><em>替你操作真实网页</em></span></div><div><b>OMX CodeReview</b><span><strong>合并前再检查</strong><em>找出自己没看到的问题</em></span></div><div><b>Debugger</b><span><strong>先找到真正原因</strong><em>避免乱改代码</em></span></div></div>
             </div>
             <div className={revealClass(2, "plain-note")}><b>给小白的比喻</b><span>平台像一个 3D 模型仓库：每个模型有身份证、历史版本、质检记录和正式上架状态。</span></div>
           </article>
@@ -196,32 +196,32 @@ export default function Home() {
 
         {scene === 2 && (
           <article className={`${lessonClass} mermaid-scene plan-mermaid-scene`}>
-            <div className="section-no">01 · PLAN x Mermaid</div>
-            <div className="statement"><h2>Plan 负责想清楚怎么做，<br /><span>Mermaid 负责让人一眼看懂并检查。</span></h2><p>要求 AI 在输出文字 Plan 的同时画出流程图。人先看图找遗漏，让 AI 同步修改 Plan 和图，确认后才开始写代码。</p></div>
+            <div className="section-no">01 · PLAN x 流程图（Mermaid）</div>
+            <div className="statement"><h2>Plan 负责想清楚怎么做，<br /><span>流程图（Mermaid）负责让人一眼看懂。</span></h2><p>一定要让 AI 多画图：只要出现流程、分支或模块关系，就同时输出图。人先看图找遗漏，让 AI 同步修改 Plan，确认后才写代码。</p></div>
             <Capability
               className={revealClass(1)}
               revealStep={revealStep}
               purpose="先得到有顺序的开发计划，再用流程图把步骤、分支和异常情况讲明白。"
               when="功能涉及多个模块，文字计划不容易快速看懂，也担心 AI 理解错需求时。"
               input="需求、相关代码、不能违反的限制，以及最后怎样才算完成。"
-              output="一份文字 Plan、一张配套 Mermaid 图，以及需要人确认的问题。"
+              output="一份文字 Plan、一张配套流程图（Mermaid），以及需要人确认的问题。"
             />
             <div className={revealClass(3, "mermaid-layout")}>
               <div className="mermaid-left">
-                <Command title="PLAN x Mermaid 示例" onCopy={copy}>{'$plan --direct "不要修改代码。先为 3D 资产上传、转换、预览、审核和发布制定开发 Plan；同时输出 Mermaid 流程图，标出格式校验、重复版本、转换失败、退回和权限分支。列出需要人确认的问题。"'}</Command>
-                <div className="iteration-steps" aria-label="PLAN 与 Mermaid 人工审阅过程">
-                  {[["1","AI 阅读需求和代码","理解现状与限制"],["2","输出文字 Plan","列模块、顺序和测试"],["3","同时输出 Mermaid","把步骤与分支画出来"],["4","人看图 Review","指出失败、权限和退回遗漏"],["5","同步修改后开工","Plan 与图确认后再写代码"]].map(([n,t,d],i)=><div key={n} className={flowStep===i?"active":flowStep>i?"done":""}><b>{n}</b><span><strong>{t}</strong><small>{d}</small></span></div>)}
+                <Command title="PLAN x 流程图示例" onCopy={copy}>{'$plan --direct "不要修改代码。先为 3D 资产上传、转换、预览、审核和发布制定开发 Plan；凡是流程、分支和模块关系都要输出流程图（Mermaid），标出格式校验、重复版本、转换失败、退回和权限分支。列出需要人确认的问题。"'}</Command>
+                <div className="iteration-steps" aria-label="PLAN 与流程图人工审阅过程">
+                  {[["1","AI 阅读需求和代码","理解现状与限制"],["2","输出文字 Plan","列模块、顺序和测试"],["3","主动多画流程图","把步骤、分支和关系画出来"],["4","人看图 Review","指出失败、权限和退回遗漏"],["5","同步修改后开工","Plan 与图确认后再写代码"]].map(([n,t,d],i)=><div key={n} className={flowStep===i?"active":flowStep>i?"done":""}><b>{n}</b><span><strong>{t}</strong><small>{d}</small></span></div>)}
                 </div>
               </div>
               <div className="mermaid-right">
-                <div className="editor-tabs"><b className="active">文字 Plan</b><b className="active">Mermaid 流程图</b><span>{flowStep>=4?"已同步定稿":"等待人工确认"}</span></div>
+                <div className="editor-tabs"><b className="active">文字 Plan</b><b className="active">流程图（Mermaid）</b><span>{flowStep>=4?"已同步定稿":"等待人工确认"}</span></div>
                 <div className="plan-outline"><span><b>模块</b>上传、转换、预览、审核</span><span><b>顺序</b>先校验，再转换，最后发布</span><span><b>验收</b>正常与失败分支都要测试</span></div>
                 <pre>{flowStep>=4?flowV2:flowV1}</pre>
                 <div className={`simple-flow ${flowStep>=4?"complete":""}`}><span>上传</span><i>→</i><span className="diamond">校验</span><i>→</i><span>转换</span><i>→</i><span>预览</span><i>→</i><span>{flowStep>=4?"通过 / 退回":"发布"}</span></div>
                 {flowStep===3&&<div className="human-comment">人类批注：转换失败呢？版本重复呢？谁可以发布？</div>}
               </div>
             </div>
-            <div className={revealClass(5, "recommendation")}><b>推荐工作流</b><span>需求与代码 → AI 输出 Plan + Mermaid → 人看图 Review → AI 同步修改 → 确认后再写代码和测试。</span></div>
+            <div className={revealClass(5, "recommendation")}><b>让 AI 多画图</b><span>需求与代码 → AI 输出 Plan + 流程图 → 人看图 Review → AI 同步修改 → 确认后再写代码和测试。</span></div>
           </article>
         )}
 
@@ -240,7 +240,7 @@ export default function Home() {
             <div className={revealClass(3, "comparison")}>
               <div className="compare-card native"><div className="compare-title"><span>Codex 原生</span><h3>Goal</h3></div><p>像一张验收目标卡。适合范围清楚、步骤少、当前线程可以完成的任务。</p><Command title="平台里的用法" onCopy={copy}>{"创建 Goal：为资产列表增加标签筛选，并用浏览器测试证明 URL、筛选结果和空状态正确。"}</Command><ul><li>一个目标</li><li>一个成功标准</li><li>由当前线程持续推进</li></ul><div className="fit">适合：标签筛选、单个 Bug、小功能</div></div>
               <div className="versus">VS</div>
-              <div className="compare-card recommended"><div className="recommended-badge">本教程推荐</div><div className="compare-title"><span>Oh My Codex</span><h3>UltraGoal</h3></div><p>像一位会记住全部进度的项目负责人：自己安排下一步，遇到失败留下记录，修好后继续，最终用测试和独立 Review 把关。</p><Command title="完整项目案例" onCopy={copy}>{'omx ultragoal create-goals --brief "开发 3D 仿真资产管理网站：完成页面设计、资产接口、上传转换、3D 预览、版本审核、飞书文档、浏览器自动化测试和加载速度排查；所有测试与 CodeReview 通过后才算完成"'}</Command><ul><li>进度保存在项目里，换会话仍能继续</li><li>失败会留下原因，可以从失败任务重试</li><li>测试、CodeReview 和整体设计检查全部通过才结束</li></ul><div className="fit strong">适合：完整平台、较长任务、性能排查</div></div>
+              <div className="compare-card recommended"><div className="recommended-badge">本教程推荐</div><div className="compare-title"><span>Oh My Codex</span><h3>UltraGoal</h3></div><p>像一位会记住全部进度的项目负责人：自己安排下一步，遇到失败留下记录，修好后继续，最终用测试和独立 Review 把关。</p><Command title="完整项目案例" onCopy={copy}>{'omx ultragoal create-goals --brief "开发 3D 仿真资产管理网站：完成页面设计、资产接口、上传转换、3D 预览、版本审核、飞书文档、浏览器自动化测试和加载速度排查；所有测试与 OMX CodeReview 通过后才算完成"'}</Command><ul><li>进度保存在项目里，换会话仍能继续</li><li>失败会留下原因，可以从失败任务重试</li><li>测试、OMX CodeReview 和整体设计检查全部通过才结束</li></ul><div className="fit strong">适合：完整平台、较长任务、性能排查</div></div>
             </div>
             <div className={revealClass(4, "recommendation coral")}><b>真正强的地方</b><span>UltraGoal 把目标、进度、失败和验证结果都保存下来；执行中发现新问题，还能根据证据调整后续任务。它追求的不是“AI 跑了很久”，而是“项目真的交付并通过检查”。</span></div>
           </article>
@@ -277,7 +277,7 @@ export default function Home() {
         {scene === 5 && (
           <article className={`${lessonClass} compare-scene review-compare`}>
             <div className="section-no">04 · REVIEW VS OMX CODEREVIEW</div>
-            <div className="statement"><h2>CodeReview：<br /><span>在合并代码前，请另一组 AI 帮你挑问题。</span></h2><p>它会重点检查有没有 Bug、安全风险、性能问题和缺少的测试，并告诉你是否适合合并。</p></div>
+            <div className="statement"><h2>OMX CodeReview：<br /><span>在合并代码前，请独立的 AI 审查组帮你挑问题。</span></h2><p>它会重点检查有没有 Bug、安全风险、性能问题和缺少的测试，并告诉你是否适合合并。</p></div>
             <Capability
               className={revealClass(1)}
               revealStep={revealStep}
@@ -289,7 +289,7 @@ export default function Home() {
             <div className={revealClass(3, "comparison")}>
               <div className="compare-card native"><div className="compare-title"><span>Codex 快速入口</span><h3>Review</h3></div><p>快速检查一个文件或一小段改动，找出比较明显的问题。</p><Command title="小改动案例" onCopy={copy}>{"/review 检查本次 3D 文件上传逻辑，重点看文件检查、权限、出错处理和测试。"}</Command><ul><li>速度快</li><li>适合正在开发的小改动</li><li>只检查你这次交给它的内容</li></ul><div className="fit">适合：边写边检查</div></div>
               <div className="versus">VS</div>
-              <div className="compare-card recommended"><div className="recommended-badge">合并前推荐</div><div className="compare-title"><span>Oh My Codex</span><h3>CodeReview</h3></div><p>由两组 AI 分别检查代码细节和整体设计，减少同一种思路反复看漏问题。</p><Command title="重要改动案例" onCopy={copy}>{"调用 OMX CodeReview，检查 3D 资产上传与转换功能：有没有安全问题、功能错误、速度问题，以及遗漏的测试。"}</Command><ul><li>第一组检查代码和测试</li><li>第二组检查整体设计是否合理</li><li>最后给出“可以合并”或“需要修改”</li></ul><div className="fit strong">适合：重要功能和正式合并</div></div>
+              <div className="compare-card recommended"><div className="recommended-badge">合并前推荐</div><div className="compare-title"><span>Oh My Codex</span><h3>OMX CodeReview</h3></div><p>由两组 AI 分别检查代码细节和整体设计，减少同一种思路反复看漏问题。</p><Command title="重要改动案例" onCopy={copy}>{"调用 OMX CodeReview，检查 3D 资产上传与转换功能：有没有安全问题、功能错误、速度问题，以及遗漏的测试。"}</Command><ul><li>第一组检查代码和测试</li><li>第二组检查整体设计是否合理</li><li>最后给出“可以合并”或“需要修改”</li></ul><div className="fit strong">适合：重要功能和正式合并</div></div>
             </div>
             <div className={revealClass(4, "review-example")}><b>发现一个严重问题：暂时不要合并</b><span>上传 ZIP 时可能把文件写到不该写的位置；超大文件还可能让服务器内存不够用。</span><em>问题位置：api/assets/upload.ts 第 71 行 · 建议先修改</em></div>
           </article>
@@ -319,9 +319,21 @@ export default function Home() {
           <article className={`${lessonClass} summary-scene`}>
             <div className="section-no">06 · 现在你会选了</div>
             <div className="summary-title"><h2>五个小技巧，<br /><span>组成一条完整的 AI 开发流程。</span></h2><p>先让人看懂和确认，再让 AI 执行，最后用真实证据检查结果。</p></div>
-            <div className={revealClass(1, "summary-list")}>{[["PLAN x Mermaid","计划太长，不容易发现 AI 理解错了哪里","最后得到：文字 Plan、配套流程图和人工确认后的规则"],["OMX UltraGoal","大项目跨很多阶段，容易中断或漏验收","最后得到：可恢复的执行进度，以及通过测试和 Review 的完整产物"],["Browser","测试网页和写飞书文档太重复","最后得到：完整自动化测试证据，以及已编写好的飞书云文档"],["OMX CodeReview","自己写的代码容易看漏问题","最后得到：问题位置、修改建议和是否合并的结论"],["Debugger","只看到了 Bug，却不知道真正原因","最后得到：复现方法、真正原因、修改和防复发测试"]].map(([n,w,d],i)=><div key={n}><b>0{i+1}</b><span><strong>{n}</strong><small>{w}</small></span><p>{d}</p></div>)}</div>
+            <div className={revealClass(1, "summary-list")}>{[["PLAN x 流程图（Mermaid）","计划太长，不容易发现 AI 理解错了哪里","最后得到：文字 Plan、多张配套流程图和人工确认后的规则"],["OMX UltraGoal","大项目跨很多阶段，容易中断或漏验收","最后得到：可恢复的执行进度，以及通过测试和 Review 的完整产物"],["Browser","测试网页和写飞书文档太重复","最后得到：完整自动化测试证据，以及已编写好的飞书云文档"],["OMX CodeReview","自己写的代码容易看漏问题","最后得到：问题位置、修改建议和是否合并的结论"],["Debugger","只看到了 Bug，却不知道真正原因","最后得到：复现方法、真正原因、修改和防复发测试"]].map(([n,w,d],i)=><div key={n}><b>0{i+1}</b><span><strong>{n}</strong><small>{w}</small></span><p>{d}</p></div>)}</div>
             <div className={revealClass(2, "closing")}><b>给小白的一句话</b><span>先让 AI 把系统讲明白，再让 UltraGoal 自动做；每一步都要求留下可以检查的证据。</span></div>
             <button className={revealClass(2, "restart")} onClick={()=>go(0)}>从头再看一次 ↺</button>
+          </article>
+        )}
+
+        {scene === 8 && (
+          <article className={`${lessonClass} appendix-scene`}>
+            <div className="section-no">附录 · OH MY CODEX</div>
+            <div className="statement"><h2>Oh My Codex：<br /><span>把零散的 AI 命令，变成可以持续运行的开发流程。</span></h2><p>它不是另一个 AI 模型，而是 Codex 的工作流与多智能体扩展：负责澄清需求、规划、长期执行、协作、Review 和质量检查。</p></div>
+            <div className={revealClass(1, "omx-intro")}><div><small>官方项目地址</small><a href="https://github.com/Yeachan-Heo/oh-my-codex" target="_blank" rel="noreferrer">github.com/Yeachan-Heo/oh-my-codex ↗</a></div><p><b>适合谁？</b><span>经常让 Codex 开发完整功能，希望任务能自动推进、失败可恢复、结果有独立检查的人。</span></p></div>
+            <div className={revealClass(2, "omx-command-groups")}>
+              {[["先想清楚",[["$deep-interview","通过提问把模糊需求问清楚"],["$ralplan","让多个角色共同检查并完善计划"]]],["自动执行",[["$autopilot","串起规划、执行、Review 和 QA 的完整闭环"],["$team","让多个智能体并行处理不同子任务"]]],["质量提升",[["$ultraqa","生成更刁钻的端到端场景并反复验证"],["$performance-goal","持续定位和优化性能问题"]]],["项目维护",[["$wiki","把项目知识保存成可搜索的长期文档"],["$doctor","检查 Oh My Codex 是否安装和运行正常"]]]].map(([group,items])=><section key={group as string}><h3>{group as string}</h3>{(items as string[][]).map(([command,description])=><div key={command}><code>{command}</code><span>{description}</span></div>)}</section>)}
+            </div>
+            <div className={revealClass(3, "recommendation coral")}><b>新手建议</b><span>先从 PLAN x 流程图、UltraGoal 和 OMX CodeReview 开始；任务更复杂后，再尝试 Autopilot、Team 与 UltraQA。</span></div>
           </article>
         )}
       </section>

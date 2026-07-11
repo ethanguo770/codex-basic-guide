@@ -17,15 +17,15 @@
 
 - Goals: help first-time Codex users independently understand five practical workflows without a presenter, by following development of a 3D simulation asset-management website
 - Non-goals: building a production WebGL engine, exhaustive CLI reference, copying another product’s visual identity
-- Success signals: viewers understand that Mermaid is a reviewable Plan output, then can choose UltraGoal, Browser, CodeReview, or Debugger for the next stage
+- Success signals: viewers ask AI to draw more diagrams as part of Plan review, then can choose UltraGoal, Browser, OMX CodeReview, or Debugger for the next stage
 
 ## Concept model
 
 - Page title: `Codex小技巧`
-- PLAN x Mermaid produces a written implementation plan and a matching flowchart; people review the visual flow, then AI synchronizes both artifacts before coding starts.
+- PLAN x 流程图（Mermaid）produces a written implementation plan and multiple matching diagrams; people review the visual flows, then AI synchronizes the plan before coding starts.
 - UltraGoal persists the project plan and progress, resumes across sessions, retries failed work, supports evidence-backed steering, and only finishes after testing and independent review pass.
 - Browser completes full browser-based test flows. For Feishu, the user authorizes the document in the web app, copies its URL into the Codex Chrome plugin, and the agent opens, fills, formats, saves, and verifies that exact document.
-- CodeReview asks independent reviewers to find problems before code is merged.
+- OMX CodeReview asks independent code and architecture reviewers to find problems before code is merged.
 - Debugger reproduces a bug, follows the clues, proves the real cause, and prevents it from returning.
 - Unifying thesis: first understand the work, then let AI do it, and finally verify the result.
 
@@ -38,7 +38,7 @@
 ## Information architecture
 
 - Primary navigation: linear chapters with keyboard, wheel, and chapter rail
-- Core screens: cover, platform brief, PLAN x Mermaid, Goal comparison, Browser demo, Review comparison, Debugger, summary
+- Core screens: cover, platform brief, PLAN x 流程图（Mermaid）, Goal comparison, Browser demo, OMX CodeReview comparison, Debugger, summary, Oh My Codex appendix
 - Content hierarchy: one large teaching statement → one concrete 3D asset example → one takeaway or recommendation
 
 ## Design principles
@@ -62,7 +62,7 @@
 
 - Existing components to reuse: chapter navigation, command copy surface, progress footer
 - New/changed components: capability anatomy strip, native-vs-OMX comparison spread, asset lifecycle diagram, interactive 3D viewer proxy, review verdict, debugger trace
-- Variants and states: active chapter, reveal step, recommended option, wheel-controlled PLAN/Mermaid review iteration, wheel-controlled browser-test progress, viewer angle, copied prompt
+- Variants and states: active chapter, reveal step, recommended option, wheel-controlled PLAN/flowchart review iteration, wheel-controlled browser-test progress, viewer angle, copied prompt
 - Token/component ownership: CSS variables in `app/globals.css`; teaching content in `app/page.tsx`
 
 ## Accessibility
@@ -91,7 +91,7 @@
 ## Content voice
 
 - Tone: plain Chinese, short sentences, jargon explained immediately
-- Terminology: “PLAN x Mermaid”; “原生 Goal” vs “OMX UltraGoal”; “快速 Review” vs “OMX CodeReview”
+- Terminology: “PLAN x 流程图（Mermaid）”; “原生 Goal” vs “OMX UltraGoal”; “快速 Review” vs “OMX CodeReview”
 - Microcopy: every scene first answers “它能帮你做什么”，then shows the 3D asset case, a prompt, and the result
 
 ## Implementation constraints
