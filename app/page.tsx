@@ -70,9 +70,11 @@ export default function Home() {
   const [testStatus, setTestStatus] = useState<"idle" | "running" | "passed">("idle");
   const [copied, setCopied] = useState(false);
   const wheelLock = useRef(false);
+  const transitionLock = useRef(false);
   const timers = useRef<number[]>([]);
 
   const go = useCallback((next: number) => {
+    if (transitionLock.current) return;
     const safe = Math.max(0, Math.min(chapters.length - 1, next));
     if (safe === scene) return;
     const nextDirection = safe > scene ? 1 : -1;
@@ -87,9 +89,14 @@ export default function Home() {
     document.documentElement.dataset.transitionAccent = Math.abs(safe - scene) > 1 || [4, 6, 8].includes(safe) ? "accent" : "push";
 
     if (!reduceMotion && doc.startViewTransition) {
-      document.documentElement.classList.add("hf-transitioning");
-      const transition = doc.startViewTransition(() => flushSync(changeScene));
-      transition.finished.finally(() => document.documentElement.classList.remove("hf-transitioning"));
+      transitionLock.current = true;
+      try {
+        const transition = doc.startViewTransition(() => flushSync(changeScene));
+        void transition.finished.catch(() => undefined).finally(() => { transitionLock.current = false; });
+      } catch {
+        transitionLock.current = false;
+        changeScene();
+      }
       return;
     }
 
@@ -115,7 +122,7 @@ export default function Home() {
       if (wheelLock.current || Math.abs(event.deltaY) < 30) return;
       wheelLock.current = true;
       go(scene + (event.deltaY > 0 ? 1 : -1));
-      window.setTimeout(() => { wheelLock.current = false; }, 720);
+      window.setTimeout(() => { wheelLock.current = false; }, 850);
     };
     window.addEventListener("wheel", onWheel, { passive: true });
     return () => window.removeEventListener("wheel", onWheel);
@@ -150,8 +157,7 @@ export default function Home() {
     <main className="guide">
       <div className="paper-grain" />
       <header className="topbar">
-        <button className="wordmark" onClick={() => go(0)}><b>C</b><span>Codex 入门课</span></button>
-        <p>无需讲师 · 功能 → 输入 → AI 动作 → 人工确认 → 产物</p>
+        <button className="wordmark" onClick={() => go(0)}><b>C</b><span>Codex 小技巧</span></button>
         <span>方向键 / 滚轮 / 点击章节</span>
       </header>
 
@@ -165,7 +171,7 @@ export default function Home() {
         {scene === 0 && (
           <article className={`${lessonClass} cover`}>
             <div className="cover-copy">
-              <div className="overline">SELF-GUIDED CODEX TOUR · 15 MIN</div>
+              <div className="overline">CODEX 小技巧 · SELF-GUIDED TOUR</div>
               <h1>用 Codex，<br />开发一个<span>3D 仿真资产管理网站</span></h1>
               <p>不需要讲师。页面会用同一个真实案例，逐步解释画流程、做计划、自动开发、浏览器测试、代码审查和调试。</p>
               <div className="self-guide"><span><b>01</b>先读一句话结论</span><span><b>02</b>再看六项能力说明</span><span><b>03</b>最后操作案例与复制提示词</span></div>

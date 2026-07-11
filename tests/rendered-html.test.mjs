@@ -53,6 +53,8 @@ test("covers every requested capability and keeps the editorial design accessibl
   assert.match(page, /最后得到/);
   assert.match(page, /不需要讲师/);
   assert.match(page, /startViewTransition/);
+  assert.match(page, /transitionLock/);
+  assert.doesNotMatch(page, /无需讲师 · 功能/);
   assert.doesNotMatch(page, /小游戏|VISUALIZE|\bVIS\b/);
   assert.match(css, /prefers-reduced-motion/);
   assert.match(css, /view-transition-name:lesson-stage/);
@@ -60,6 +62,7 @@ test("covers every requested capability and keeps the editorial design accessibl
   assert.doesNotMatch(css, /infinite/);
   assert.match(design, /warm editorial|Claude-like/);
   assert.match(layout, /lang="zh-CN"/);
+  assert.match(layout, /title: "Codex 小技巧"/);
   assert.doesNotMatch(packageJson, /react-loading-skeleton/);
   await assert.rejects(access(new URL("../app/_sites-preview/SkeletonPreview.tsx", import.meta.url)));
 });

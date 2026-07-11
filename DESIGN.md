@@ -45,7 +45,7 @@
 - Typography: Georgia-style editorial serif for teaching statements; Geist sans for explanation; Geist Mono for commands, asset IDs, and evidence
 - Spacing/layout rhythm: generous outer margins, 8px rhythm, asymmetric 40/60 and 45/55 split frames
 - Shape/radius/elevation: mostly square editorial panels, small radii on controls and asset cards, restrained shadows
-- Motion: HyperFrames-inspired 760ms page push as the primary transition; diagonal mask for major topic changes; short importance-first stagger; finite CSS 3D rotations only when the user acts; reduced-motion fallback
+- Motion: HyperFrames-inspired 680ms page push as the primary transition; directional diagonal mask for major topic changes; navigation lock prevents overlapping transitions; reduced-motion fallback
 - Imagery/iconography: CSS 3D model proxy, metadata panels, flow diagrams; no stock art or authored SVG
 
 ## Components
