@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { flushSync } from "react-dom";
 
 const chapters = ["开场", "认识平台", "Mermaid", "Plan", "UltraGoal", "Browser", "CodeReview", "Debugger", "总结"];
 
@@ -56,21 +55,18 @@ function Capability({ purpose, when, input, action, human, output }: CapabilityP
   );
 }
 
-type TransitionDocument = Document & {
-  startViewTransition?: (update: () => void) => { finished: Promise<void> };
-};
-
 export default function Home() {
   const [scene, setScene] = useState(0);
   const [direction, setDirection] = useState(1);
+  const [transitioning, setTransitioning] = useState(false);
+  const [transitionLabel, setTransitionLabel] = useState(chapters[0]);
   const [flowStep, setFlowStep] = useState(0);
-  const [browserMode, setBrowserMode] = useState<"test" | "docs">("test");
-  const [asset, setAsset] = useState<"pump" | "robot" | "warehouse">("pump");
   const [angle, setAngle] = useState(0);
   const [testStatus, setTestStatus] = useState<"idle" | "running" | "passed">("idle");
   const [copied, setCopied] = useState(false);
   const wheelLock = useRef(false);
   const transitionLock = useRef(false);
+  const transitionTimers = useRef<number[]>([]);
   const timers = useRef<number[]>([]);
 
   const go = useCallback((next: number) => {
@@ -78,29 +74,22 @@ export default function Home() {
     const safe = Math.max(0, Math.min(chapters.length - 1, next));
     if (safe === scene) return;
     const nextDirection = safe > scene ? 1 : -1;
-    const doc = document as TransitionDocument;
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const changeScene = () => {
-      setDirection(nextDirection);
-      setScene(safe);
-    };
+    setDirection(nextDirection);
+    if (safe === 2) setFlowStep(0);
+    if (safe === 5) { setTestStatus("idle"); setAngle(0); }
+    if (reduceMotion) { setScene(safe); return; }
 
-    document.documentElement.dataset.navDirection = nextDirection > 0 ? "forward" : "backward";
-    document.documentElement.dataset.transitionAccent = Math.abs(safe - scene) > 1 || [4, 6, 8].includes(safe) ? "accent" : "push";
-
-    if (!reduceMotion && doc.startViewTransition) {
-      transitionLock.current = true;
-      try {
-        const transition = doc.startViewTransition(() => flushSync(changeScene));
-        void transition.finished.catch(() => undefined).finally(() => { transitionLock.current = false; });
-      } catch {
-        transitionLock.current = false;
-        changeScene();
-      }
-      return;
-    }
-
-    changeScene();
+    transitionLock.current = true;
+    transitionTimers.current.forEach(window.clearTimeout);
+    transitionTimers.current = [];
+    setTransitionLabel(chapters[safe]);
+    setTransitioning(true);
+    transitionTimers.current.push(window.setTimeout(() => setScene(safe), 330));
+    transitionTimers.current.push(window.setTimeout(() => {
+      setTransitioning(false);
+      transitionLock.current = false;
+    }, 720));
   }, [scene]);
 
   useEffect(() => {
@@ -128,30 +117,41 @@ export default function Home() {
     return () => window.removeEventListener("wheel", onWheel);
   }, [go, scene]);
 
-  useEffect(() => () => timers.current.forEach(window.clearTimeout), []);
-
   const copy = async (text: string) => {
     try { await navigator.clipboard.writeText(text); } catch { /* preview may deny clipboard */ }
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1100);
   };
 
-  const runBrowserTest = () => {
-    timers.current.forEach(window.clearTimeout); timers.current = [];
-    setTestStatus("running"); setAsset("pump"); setAngle(0);
-    timers.current.push(window.setTimeout(() => setAngle(1), 500));
-    timers.current.push(window.setTimeout(() => setAngle(2), 1000));
-    timers.current.push(window.setTimeout(() => setAngle(3), 1450));
-    timers.current.push(window.setTimeout(() => setTestStatus("passed"), 1900));
-  };
+  useEffect(() => {
+    timers.current.forEach(window.clearTimeout);
+    timers.current = [];
+
+    if (scene === 2) {
+      timers.current.push(window.setTimeout(() => setFlowStep(1), 950));
+      timers.current.push(window.setTimeout(() => setFlowStep(2), 1900));
+      timers.current.push(window.setTimeout(() => setFlowStep(3), 2850));
+    }
+
+    if (scene === 5) {
+      timers.current.push(window.setTimeout(() => setTestStatus("running"), 180));
+      timers.current.push(window.setTimeout(() => setAngle(1), 900));
+      timers.current.push(window.setTimeout(() => setAngle(2), 1450));
+      timers.current.push(window.setTimeout(() => setAngle(3), 2000));
+      timers.current.push(window.setTimeout(() => setTestStatus("passed"), 2550));
+    }
+
+    return () => timers.current.forEach(window.clearTimeout);
+  }, [scene]);
+
+  useEffect(() => () => {
+    transitionTimers.current.forEach(window.clearTimeout);
+    timers.current.forEach(window.clearTimeout);
+  }, []);
 
   const lessonClass = direction > 0 ? "lesson lesson-next" : "lesson lesson-prev";
   const progress = `${((scene + 1) / chapters.length) * 100}%`;
-  const assetInfo = {
-    pump: ["PUMP-204", "离心泵总成", "v3.2", "已审核"],
-    robot: ["ROBOT-018", "六轴机械臂", "v1.8", "待审核"],
-    warehouse: ["WH-031", "自动化仓库", "v2.1", "草稿"],
-  }[asset];
+  const assetInfo = ["PUMP-204", "离心泵总成", "v3.2", "待审核"];
 
   return (
     <main className="guide">
@@ -166,7 +166,7 @@ export default function Home() {
       </nav>
 
       <section className="stage" aria-live="polite">
-        <div key={`wipe-${scene}`} className={`soft-wipe ${direction > 0 ? "forward" : "backward"}`} aria-hidden="true"><i /><i /><i /><b>{chapters[scene]}</b></div>
+        {transitioning && <div className={`soft-wipe ${direction > 0 ? "forward" : "backward"}`} aria-hidden="true"><i /><i /><i /><b>{transitionLabel}</b></div>}
 
         {scene === 0 && (
           <article className={`${lessonClass} cover`}>
@@ -216,12 +216,12 @@ export default function Home() {
             <div className="mermaid-layout">
               <div className="mermaid-left">
                 <Command title="直接这样问" onCopy={copy}>{"不要修改代码。先把 3D 资产从上传、转换、预览、审核到发布的流程输出为 Mermaid；标出格式校验、重复版本、转换失败和权限分支。"}</Command>
-                <div className="iteration-steps">
-                  {[["1","AI 画出 v1","先看它怎样理解"],["2","人类 Review","指出缺少失败与权限分支"],["3","补充规则","加入重复版本、重试和退回"],["4","确认 v2","再同步 Plan 和代码"]].map(([n,t,d],i)=><button key={n} className={flowStep===i?"active":flowStep>i?"done":""} onClick={()=>setFlowStep(i)}><b>{n}</b><span><strong>{t}</strong><small>{d}</small></span></button>)}
+                <div className="iteration-steps" aria-label="Mermaid 自动迭代过程">
+                  {[["1","AI 画出 v1","先看它怎样理解"],["2","人类 Review","指出缺少失败与权限分支"],["3","补充规则","加入重复版本、重试和退回"],["4","确认 v2","再同步 Plan 和代码"]].map(([n,t,d],i)=><div key={n} className={flowStep===i?"active":flowStep>i?"done":""}><b>{n}</b><span><strong>{t}</strong><small>{d}</small></span></div>)}
                 </div>
               </div>
               <div className="mermaid-right">
-                <div className="editor-tabs"><button className={flowStep<2?"active":""} onClick={()=>setFlowStep(0)}>AI 初稿 v1</button><button className={flowStep>=2?"active":""} onClick={()=>setFlowStep(3)}>人工调整后 v2</button><span>{flowStep>=2?"分支完整":"待人工审阅"}</span></div>
+                <div className="editor-tabs"><b className={flowStep<2?"active":""}>AI 初稿 v1</b><b className={flowStep>=2?"active":""}>人工调整后 v2</b><span>{flowStep>=2?"分支完整":"待人工审阅"}</span></div>
                 <pre>{flowStep>=2?flowV2:flowV1}</pre>
                 <div className={`simple-flow ${flowStep>=2?"complete":""}`}><span>上传</span><i>→</i><span className="diamond">校验</span><i>→</i><span>转换</span><i>→</i><span>预览</span><i>→</i><span>{flowStep>=2?"通过 / 退回":"发布"}</span></div>
                 {flowStep===1&&<div className="human-comment">人类批注：转换失败呢？版本重复呢？谁可以发布？</div>}
@@ -284,15 +284,19 @@ export default function Home() {
               human="授权登录态与外部写入，定义断言，并复核截图和页面结果"
               output="页面结果、截图或断言证据，以及经授权创建的在线文档"
             />
-            <div className="mode-tabs"><button className={browserMode==="test"?"active":""} onClick={()=>setBrowserMode("test")}>网站自动化测试</button><button className={browserMode==="docs"?"active":""} onClick={()=>setBrowserMode("docs")}>输出飞书云文档</button></div>
-            {browserMode === "test" ? (
-              <div className="browser-spread">
-                <div className="browser-instruction"><Command title="Browser 测试提示词" onCopy={copy}>{"打开本地 3D 资产网站；搜索 PUMP-204，进入详情，旋转模型确认预览可用，提交审核，并断言状态从“草稿”变成“待审核”。"}</Command><div className="test-log"><small>AUTOMATION STEPS</small><span className={testStatus!=="idle"?"done":"active"}>1. 搜索 PUMP-204</span><span className={angle>=1?"done":""}>2. 打开 3D 预览</span><span className={angle>=2?"done":""}>3. 旋转检查模型</span><span className={angle>=3?"done":""}>4. 读取元数据</span><span className={testStatus==="passed"?"done":""}>5. 断言测试通过</span></div><button className="automation" onClick={runBrowserTest}>▶ 演示 Browser 自动测试</button></div>
-                <div className="mini-browser"><div className="mini-bar"><i/><i/><i/><span>localhost:3000/assets/PUMP-204</span></div><div className="asset-app"><aside>{(["pump","robot","warehouse"] as const).map(a=><button key={a} className={asset===a?"active":""} onClick={()=>{setAsset(a);setTestStatus("idle")}}><b>{a==="pump"?"P":a==="robot"?"R":"W"}</b><span>{a==="pump"?"离心泵":a==="robot"?"机械臂":"自动仓库"}</span></button>)}</aside><section><div className="viewer"><div className={`model-proxy angle-${angle}`}><i className="front"/><i className="back"/><i className="right"/><i className="left"/><i className="top"/><i className="bottom"/><span/></div><div className="viewer-grid"/><button onClick={()=>setAngle((angle+1)%4)}>旋转模型 ↻</button>{testStatus==="passed"&&<em>✓ 预览测试通过</em>}</div><div className="asset-meta"><small>{assetInfo[0]}</small><h3>{assetInfo[1]}</h3><p>GLB · 42.8 MB · {assetInfo[2]}</p><div><span>状态</span><b>{assetInfo[3]}</b></div><div><span>贴图</span><b>8 / 8 正常</b></div><div><span>三角面</span><b>124,860</b></div></div></section></div></div>
-              </div>
-            ) : (
-              <div className="docs-spread"><div><Command title="飞书文档提示词" onCopy={copy}>{"读取资产库中本周新增、待审核和转换失败的 3D 资产；打开飞书云文档，生成《仿真资产周报》，包含资产清单、风险、负责人和下周计划。"}</Command><div className="permission-note"><b>注意</b><span>写入真实飞书属于外部操作，需要登录状态和明确授权。</span></div></div><div className="doc-page"><small>仿真资产周报 · Week 28</small><h3>3D Asset Operations</h3><p>本周新增 42 个资产，已审核 31 个，转换失败 3 个。</p><h4>需要关注</h4><div className="doc-table"><span>PUMP-204 <b>已审核</b></span><span>ROBOT-018 <b>待审核</b></span><span>WH-031 <b>贴图缺失</b></span></div><h4>下周计划</h4><p>修复贴图路径校验；补充大文件转换性能基线。</p><em>Browser 已完成录入与校对</em></div></div>
-            )}
+            <div className="browser-sequence">
+              <section className="browser-phase test-phase">
+                <div className="phase-heading"><b>01</b><span><strong>先验证网站</strong><small>自动执行搜索、预览、旋转、提交和断言</small></span></div>
+                <div className="browser-spread">
+                  <div className="browser-instruction"><Command title="Browser 测试提示词" onCopy={copy}>{"打开本地 3D 资产网站；搜索 PUMP-204，进入详情，旋转模型确认预览可用，提交审核，并断言状态从“草稿”变成“待审核”。"}</Command><div className="test-log"><small>AUTOMATION STEPS · 自动推进</small><span className={testStatus!=="idle"?"done":"active"}>1. 搜索 PUMP-204</span><span className={angle>=1?"done":""}>2. 打开 3D 预览</span><span className={angle>=2?"done":""}>3. 旋转检查模型</span><span className={angle>=3?"done":""}>4. 读取元数据</span><span className={testStatus==="passed"?"done":""}>5. 断言测试通过</span></div></div>
+                  <div className="mini-browser"><div className="mini-bar"><i/><i/><i/><span>localhost:3000/assets/PUMP-204</span></div><div className="asset-app"><aside><div className="asset-row active"><b>P</b><span>离心泵</span></div><div className="asset-row"><b>R</b><span>机械臂</span></div><div className="asset-row"><b>W</b><span>自动仓库</span></div></aside><section><div className="viewer"><div className={`model-proxy angle-${angle}`}><i className="front"/><i className="back"/><i className="right"/><i className="left"/><i className="top"/><i className="bottom"/><span/></div><div className="viewer-grid"/>{testStatus==="passed"&&<em>✓ 预览测试通过</em>}</div><div className="asset-meta"><small>{assetInfo[0]}</small><h3>{assetInfo[1]}</h3><p>GLB · 42.8 MB · {assetInfo[2]}</p><div><span>状态</span><b>{testStatus==="passed"?"待审核":"草稿"}</b></div><div><span>贴图</span><b>8 / 8 正常</b></div><div><span>三角面</span><b>124,860</b></div></div></section></div></div>
+                </div>
+              </section>
+              <section className="browser-phase docs-phase">
+                <div className="phase-heading"><b>02</b><span><strong>再沉淀文档</strong><small>把验证结果写入已授权的飞书云文档</small></span></div>
+                <div className="docs-compact"><Command title="飞书文档提示词" onCopy={copy}>{"读取资产库中本周新增、待审核和转换失败的 3D 资产；打开飞书云文档，生成《仿真资产周报》，包含资产清单、风险、负责人和下周计划。"}</Command><div className="permission-note"><b>注意</b><span>写入真实飞书需要登录状态和明确授权。</span></div><div className="doc-page"><small>仿真资产周报 · Week 28</small><h3>3D Asset Operations</h3><p>本周新增 42 个资产，已审核 31 个，转换失败 3 个。</p><h4>需要关注</h4><div className="doc-table"><span>PUMP-204 <b>已审核</b></span><span>ROBOT-018 <b>待审核</b></span><span>WH-031 <b>贴图缺失</b></span></div><em>Browser 已完成录入与校对</em></div></div>
+              </section>
+            </div>
           </article>
         )}
 
