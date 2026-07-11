@@ -22,13 +22,13 @@
 ## Concept model
 
 - Page title: `Codex小技巧`
-- Mermaid externalizes hidden assumptions and reduces understanding risk.
-- Plan turns agreed behavior into a decision contract and reduces implementation rework.
-- UltraGoal turns complex execution into a recoverable, auditable ledger with quality gates.
-- Browser connects code claims to real page state and authorized external outputs.
-- CodeReview introduces independent adversarial evidence and a deterministic merge gate.
-- Debugger proves causality through reproduction, isolation, minimal repair, and regression evidence.
-- Unifying thesis: make understanding visible, execution recoverable, and results evidence-backed.
+- Mermaid turns long text into a flowchart people can review together.
+- Plan lists what to do, in what order, and how to check completion before coding starts.
+- UltraGoal breaks a large project into smaller jobs, remembers progress, and keeps going until the work is checked.
+- Browser lets AI operate the real page, verify visible results, and write approved outputs to external documents.
+- CodeReview asks independent reviewers to find problems before code is merged.
+- Debugger reproduces a bug, follows the clues, proves the real cause, and prevents it from returning.
+- Unifying thesis: first understand the work, then let AI do it, and finally verify the result.
 
 ## Personas and jobs
 
@@ -47,7 +47,7 @@
 - One idea per scene; hide secondary detail until the primary point is understood
 - Demonstrate every command inside the same asset lifecycle: upload → convert → preview → review → publish
 - Compare native Codex and OMX with parallel structure and an explicit recommendation
-- Give every capability the same six-part anatomy: function, use moment, required input, AI action, human control point, final output
+- Give every capability the same four-part anatomy: what it does, when to use it, what to tell AI, and what the user receives
 - Tradeoff: less reference density in exchange for beginner comprehension
 
 ## Visual language
@@ -93,7 +93,7 @@
 
 - Tone: plain Chinese, short sentences, jargon explained immediately
 - Terminology: “原生 Goal” vs “OMX UltraGoal”; “快速 Review” vs “OMX CodeReview”
-- Microcopy: every scene answers “它做什么 / 什么时候用 / 在这个平台里怎么用”
+- Microcopy: every scene first answers “它能帮你做什么”，then shows the 3D asset case, a prompt, and the result
 
 ## Implementation constraints
 

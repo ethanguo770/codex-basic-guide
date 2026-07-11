@@ -45,19 +45,17 @@ test("covers every requested capability and keeps the editorial design accessibl
   ]) assert.match(page, new RegExp(required));
 
   assert.match(page, /本教程推荐/);
-  assert.match(page, /它的功能/);
-  assert.match(page, /什么时候用/);
-  assert.match(page, /你要提供/);
-  assert.match(page, /AI 会执行/);
-  assert.match(page, /人类控制点/);
-  assert.match(page, /最后得到/);
+  assert.match(page, /它能帮你做什么/);
+  assert.match(page, /什么时候会用到/);
+  assert.match(page, /你只要告诉 AI/);
+  assert.match(page, /它会交给你/);
   assert.match(page, /Codex小技巧/);
-  assert.match(page, /隐形假设摊在桌面上/);
-  assert.match(page, /开工前的决策边界/);
-  assert.match(page, /执行可恢复/);
-  assert.match(page, /接到真实环境/);
-  assert.match(page, /引入独立反方/);
-  assert.match(page, /因果链/);
+  assert.match(page, /把一大段文字变成流程图/);
+  assert.match(page, /开始写代码前，先把怎么做列清楚/);
+  assert.match(page, /持续推进一个大项目/);
+  assert.match(page, /真的打开网页操作和检查/);
+  assert.match(page, /请另一组 AI 帮你挑问题/);
+  assert.match(page, /先查清 Bug 为什么发生/);
   assert.match(page, /transitionLock/);
   assert.match(page, /setTransitioning/);
   assert.match(page, /sceneMaxSteps/);
@@ -67,6 +65,7 @@ test("covers every requested capability and keeps the editorial design accessibl
   assert.doesNotMatch(page, /Mermaid 自动迭代|AUTOMATION STEPS · 自动推进/);
   assert.doesNotMatch(page, /startViewTransition|mode-tabs|演示 Browser 自动测试/);
   assert.doesNotMatch(page, /无需讲师 · 功能/);
+  assert.doesNotMatch(page, /人类控制点|AI 会执行|可审计的 ledger|架构边界|最终质量门/);
   assert.doesNotMatch(page, /小游戏|VISUALIZE|\bVIS\b/);
   assert.match(css, /prefers-reduced-motion/);
   assert.match(css, /soft-cover/);
