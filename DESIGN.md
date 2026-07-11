@@ -19,6 +19,17 @@
 - Non-goals: building a production WebGL engine, exhaustive CLI reference, copying another product’s visual identity
 - Success signals: viewers can explain which command to use for understanding, planning, long execution, browser validation, review, and debugging
 
+## Concept model
+
+- Page title: `Codex小技巧`
+- Mermaid externalizes hidden assumptions and reduces understanding risk.
+- Plan turns agreed behavior into a decision contract and reduces implementation rework.
+- UltraGoal turns complex execution into a recoverable, auditable ledger with quality gates.
+- Browser connects code claims to real page state and authorized external outputs.
+- CodeReview introduces independent adversarial evidence and a deterministic merge gate.
+- Debugger proves causality through reproduction, isolation, minimal repair, and regression evidence.
+- Unifying thesis: make understanding visible, execution recoverable, and results evidence-backed.
+
 ## Personas and jobs
 
 - Primary personas: developers, technical artists, simulation teams, and product teammates new to Codex/OMX

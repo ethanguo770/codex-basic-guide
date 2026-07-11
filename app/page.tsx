@@ -157,7 +157,7 @@ export default function Home() {
     <main className="guide">
       <div className="paper-grain" />
       <header className="topbar">
-        <button className="wordmark" onClick={() => go(0)}><b>C</b><span>Codex 小技巧</span></button>
+        <button className="wordmark" onClick={() => go(0)}><b>C</b><span>Codex小技巧</span></button>
         <span>方向键 / 滚轮 / 点击章节</span>
       </header>
 
@@ -171,10 +171,10 @@ export default function Home() {
         {scene === 0 && (
           <article className={`${lessonClass} cover`}>
             <div className="cover-copy">
-              <div className="overline">CODEX 小技巧 · SELF-GUIDED TOUR</div>
-              <h1>用 Codex，<br />开发一个<span>3D 仿真资产管理网站</span></h1>
-              <p>不需要讲师。页面会用同一个真实案例，逐步解释画流程、做计划、自动开发、浏览器测试、代码审查和调试。</p>
-              <div className="self-guide"><span><b>01</b>先读一句话结论</span><span><b>02</b>再看六项能力说明</span><span><b>03</b>最后操作案例与复制提示词</span></div>
+              <div className="overline">FROM PROMPT TO PROOF · CODEX</div>
+              <h1>Codex小技巧<span className="case-title">用一个 3D 仿真资产管理网站，读懂 AI 开发闭环</span></h1>
+              <p>这不是命令清单。六个技巧分别解决理解偏差、实施返工、长任务失忆、真实环境差异、审查盲区和根因不确定。</p>
+              <div className="cover-thesis"><b>核心作用</b><span>让理解可见，让执行可恢复，让结果有证据。</span></div>
               <button className="primary" onClick={() => go(1)}>从资产生命周期开始 <b>→</b></button>
             </div>
             <div className="cover-product" aria-hidden="true">
@@ -195,7 +195,7 @@ export default function Home() {
             <div className="platform-brief">
               <div className="asset-definition"><small>什么是一个 3D 仿真资产？</small><h3>文件 + 数据 + 流程</h3><div className="asset-stack"><span><b>01</b>GLB / FBX 模型</span><span><b>02</b>贴图与材质</span><span><b>03</b>名称、标签、尺寸</span><span><b>04</b>版本与审核记录</span><span><b>05</b>发布到仿真环境</span></div></div>
               <div className="lifecycle"><small>核心流程</small>{[["上传","技术美术提交模型"],["转换","生成统一格式与缩略图"],["预览","浏览器检查模型和贴图"],["审核","负责人通过或退回"],["发布","进入正式仿真资产库"]].map(([t,d],i)=><div key={t}><b>0{i+1}</b><span><strong>{t}</strong><em>{d}</em></span></div>)}</div>
-              <div className="capability-route"><small>六个能力分别负责</small><div><b>Mermaid</b><span>画清生命周期</span></div><div><b>Plan</b><span>拆开发工作</span></div><div><b>UltraGoal</b><span>自动推进全项目</span></div><div><b>Browser</b><span>操作页面验证</span></div><div><b>CodeReview</b><span>合并前把关</span></div><div><b>Debugger</b><span>定位预览故障</span></div></div>
+              <div className="capability-route"><small>六个技巧真正减少的风险</small><div><b>Mermaid</b><span><strong>理解可见</strong><em>减少需求误解</em></span></div><div><b>Plan</b><span><strong>决策成形</strong><em>减少实施返工</em></span></div><div><b>UltraGoal</b><span><strong>执行可恢复</strong><em>防止长任务失忆</em></span></div><div><b>Browser</b><span><strong>接入真实环境</strong><em>消除“看起来正确”</em></span></div><div><b>CodeReview</b><span><strong>引入独立反方</strong><em>暴露作者盲区</em></span></div><div><b>Debugger</b><span><strong>建立因果证据</strong><em>避免试错式修复</em></span></div></div>
             </div>
             <div className="plain-note"><b>给小白的比喻</b><span>平台像一个 3D 模型仓库：每个模型有身份证、历史版本、质检记录和正式上架状态。</span></div>
           </article>
@@ -204,10 +204,10 @@ export default function Home() {
         {scene === 2 && (
           <article className={`${lessonClass} mermaid-scene`}>
             <div className="section-no">01 · MERMAID</div>
-            <div className="statement"><h2>先别急着写上传代码，<br /><span>让 AI 把资产流程画出来。</span></h2><p>流程图一出现，人类马上能发现：格式失败怎么办？重复版本怎么办？谁有权发布？</p></div>
+            <div className="statement"><h2>Mermaid 不是为了画图，<br /><span>而是把 AI 的隐形假设摊在桌面上。</span></h2><p>在代码还是零改动时发现误解，代价最低。流程图让人类可以直接批注异常、权限和状态流转。</p></div>
             <Capability
-              purpose="把 AI 对业务与代码的理解，变成一张人类可以审阅的图"
-              when="流程分支多、跨前后端，或你担心 AI 理解错需求时"
+              purpose="把模型脑中的理解外化为共同模型，让误解可以被看见和纠正"
+              when="需求有多个状态、异常和角色，继续写代码会放大理解偏差时"
               input="相关代码范围、业务规则、需要标出的异常与权限"
               action="读取文字与代码，画出 v1；根据人工批注补齐分支并迭代 v2"
               human="审阅流程图，补充异常、权限和业务规则；确认 v2 后才允许改代码"
@@ -234,10 +234,10 @@ export default function Home() {
         {scene === 3 && (
           <article className={`${lessonClass} plan-scene`}>
             <div className="section-no">02 · PLAN × 流程图</div>
-            <div className="statement"><h2>流程图讲“资产怎么流转”，<br /><span>Plan 讲“系统怎么实现”。</span></h2><p>两者一起用，业务、前端、后端和测试可以在写代码前对齐。</p></div>
+            <div className="statement"><h2>Plan 不是任务清单，<br /><span>而是开工前的决策边界。</span></h2><p>Mermaid 决定业务必须怎样流转；Plan 决定改哪些模块、按什么顺序、如何验收以及哪里可能失败。</p></div>
             <Capability
-              purpose="在修改代码前，生成可执行、可验证的实施方案"
-              when="需求跨多个模块、存在依赖或验收标准还不清楚时"
+              purpose="把已确认的业务行为压缩成范围、依赖、风险和验收合同"
+              when="需求跨多个模块，任何遗漏都会造成返工或无法判断是否完成时"
               input="确认后的流程图、仓库现状、约束、优先级与成功标准"
               action="把业务节点映射为模块、步骤、依赖、风险与测试，再等待人工调整"
               human="调整范围、顺序、风险和验收标准；确认计划后再开始实现"
@@ -254,10 +254,10 @@ export default function Home() {
         {scene === 4 && (
           <article className={`${lessonClass} compare-scene`}>
             <div className="section-no">03 · GOAL VS OMX ULTRAGOAL</div>
-            <div className="statement"><h2>Goal 适合一个明确改动，<br /><span>完整平台建议直接用 UltraGoal。</span></h2><p>UltraGoal 会把设计、实现、文档、测试和质量门拆成持久目标，并记录每一步证据。</p></div>
+            <div className="statement"><h2>Goal 记住“要完成什么”，<br /><span>UltraGoal 记住“如何持续证明完成”。</span></h2><p>真正差别不是速度，而是恢复能力：UltraGoal 把复杂项目写入 brief、子目标和 ledger，中断后仍能继续。</p></div>
             <Capability
-              purpose="Goal 保持一个目标持续可见；UltraGoal 管理一组长期子目标与检查点"
-              when="小改动需要明确完成标准，或大型任务需要跨多轮持续执行时"
+              purpose="Goal 保持单一结果不丢失；UltraGoal 把复杂执行变成可恢复、可审计的项目账本"
+              when="任务跨设计、开发、测试、性能和 Review，无法在一次对话内可靠完成时"
               input="目标、范围、约束、质量门，以及可以证明完成的证据"
               action="拆解子目标，持续执行设计、开发、测试与性能排查，并记录检查点"
               human="批准目标和质量门；外部写入、高风险或破坏性动作仍由人授权"
@@ -275,10 +275,10 @@ export default function Home() {
         {scene === 5 && (
           <article className={`${lessonClass} browser-scene`}>
             <div className="section-no">04 · BROWSER PLUGIN</div>
-            <div className="statement"><h2>系统写完以后，<br /><span>让 Browser 真的操作资产网站。</span></h2><p>它可以搜索资产、打开 3D 预览、旋转模型、提交审核，也可以把资产清单写入飞书云文档。</p></div>
+            <div className="statement"><h2>Browser 不是自动点击器，<br /><span>而是把代码结论接到真实环境。</span></h2><p>只有真实页面、真实登录态和明确断言都通过，“功能完成”才从推测变成证据。</p></div>
             <Capability
-              purpose="使用真实浏览器读取页面、执行操作并验证最终状态"
-              when="结果必须在网页、登录态或外部文档中被真实验证时"
+              purpose="关闭代码与用户可见结果之间的现实差距，留下可复查证据"
+              when="功能依赖真实 DOM、登录状态、交互结果或外部文档写入时"
               input="目标网址、已授权的登录状态、操作步骤和断言"
               action="搜索、点击、旋转、提交并读取页面状态；经授权后也可写入飞书文档"
               human="授权登录态与外部写入，定义断言，并复核截图和页面结果"
@@ -299,10 +299,10 @@ export default function Home() {
         {scene === 6 && (
           <article className={`${lessonClass} compare-scene review-compare`}>
             <div className="section-no">05 · REVIEW VS OMX CODEREVIEW</div>
-            <div className="statement"><h2>快速 Review 看当前改动，<br /><span>合并前建议用 OMX CodeReview。</span></h2><p>和 Goal / UltraGoal 类似：一个轻量直接，一个更独立、更完整、更适合作为质量门。</p></div>
+            <div className="statement"><h2>CodeReview 不是再读一遍代码，<br /><span>而是引入独立反方与合并门槛。</span></h2><p>作者容易验证“它能工作”；独立 reviewer 和 architect 会主动寻找“它为什么不该合并”。</p></div>
             <Capability
-              purpose="在不修改代码的前提下，找出可执行的问题并决定是否适合合并"
-              when="完成功能、准备提 PR，或 UltraGoal 进入最终质量门时"
+              purpose="用独立实现审查与架构反证，暴露作者上下文中的盲区"
+              when="功能准备合并、风险较高，或 UltraGoal 进入最终质量门时"
               input="代码 diff、原始需求、架构约束和应该通过的测试"
               action="reviewer 检查实现与测试，architect 检查边界；按严重级别整理证据"
               human="判断哪些发现必须修复，复核证据，并作出是否合并的最终决定"
@@ -320,10 +320,10 @@ export default function Home() {
         {scene === 7 && (
           <article className={`${lessonClass} debug-scene`}>
             <div className="section-no">06 · DEBUGGER</div>
-            <div className="statement"><h2>部分模型预览变黑时，<br /><span>Debugger 先证明根因，再改代码。</span></h2><p>“预览失败”只是症状。Debugger 会先找出稳定复现条件，再验证究竟是材质、贴图、格式还是浏览器问题。</p></div>
+            <div className="statement"><h2>Debugger 不是试一个修复，<br /><span>而是建立从症状到根因的因果链。</span></h2><p>修好一次不等于知道原因。稳定复现、环境对照和回归测试共同证明修复不是巧合。</p></div>
             <Capability
-              purpose="把模糊症状转化为稳定复现、已证明根因和最小修复"
-              when="Bug 偶发、只在特定环境出现，或多次修改仍然复发时"
+              purpose="把模糊症状转化为可以被证伪、被证明、被回归保护的因果解释"
+              when="Bug 偶发、环境相关，或团队已经尝试过多个猜测式修复时"
               input="症状、期望行为、复现线索、日志和最近变更"
               action="稳定复现、比较环境差异、验证假设、实施最小修复并补回归测试"
               human="确认复现条件与修复边界，审阅根因证据，避免扩大改动范围"
@@ -340,8 +340,8 @@ export default function Home() {
         {scene === 8 && (
           <article className={`${lessonClass} summary-scene`}>
             <div className="section-no">07 · 现在你会选了</div>
-            <div className="summary-title"><h2>开发一个 3D 资产平台，<br /><span>六个能力各司其职。</span></h2><p>先判断你遇到的是理解、计划、执行、验证、审查，还是调试问题。</p></div>
-            <div className="summary-list">{[["Mermaid","生命周期不清楚","先把上传、转换、审核和发布画出来"],["Plan","不知道如何实施","拆模块、依赖、风险与验收"],["OMX UltraGoal","项目跨很多阶段","推荐：自动推进设计、实现、测试和质量门"],["Browser","需要真实页面结果","搜索、预览、旋转、提交审核或写飞书"],["OMX CodeReview","准备合并代码","推荐：独立 reviewer + architect 审查"],["Debugger","预览故障根因不明","复现、证明、最小修复、跨平台回归"]].map(([n,w,d],i)=><div key={n}><b>0{i+1}</b><span><strong>{n}</strong><small>{w}</small></span><p>{d}</p></div>)}</div>
+            <div className="summary-title"><h2>六个小技巧，<br /><span>解决六种不同的开发失真。</span></h2><p>先判断风险发生在理解、决策、执行、现实、审查还是因果层，再选对应能力。</p></div>
+            <div className="summary-list">{[["Mermaid","理解偏差","产物：一张人类确认过的共同流程模型"],["Plan","实施模糊","产物：带风险和验收标准的决策合同"],["OMX UltraGoal","长任务失忆","产物：可恢复的目标、ledger 与质量门证据"],["Browser","真实环境差异","产物：页面状态、断言、截图或授权文档"],["OMX CodeReview","作者审查盲区","产物：独立双通道发现与合并结论"],["Debugger","根因不确定","产物：可复现因果链、最小修复与回归测试"]].map(([n,w,d],i)=><div key={n}><b>0{i+1}</b><span><strong>{n}</strong><small>{w}</small></span><p>{d}</p></div>)}</div>
             <div className="closing"><b>给小白的一句话</b><span>先让 AI 把系统讲明白，再让 UltraGoal 自动做；每一步都要求留下可以检查的证据。</span></div>
             <button className="restart" onClick={()=>go(0)}>从头再看一次 ↺</button>
           </article>

@@ -6,7 +6,7 @@ const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Codex 小技巧",
+  title: "Codex小技巧",
   description: "面向新手，用一个 3D 资产平台讲清 Mermaid、Plan、UltraGoal、Browser、CodeReview 与 Debugger。",
 };
 
