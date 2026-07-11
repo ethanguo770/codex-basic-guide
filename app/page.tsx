@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 
-const chapters = ["开场", "认识平台", "Mermaid", "Plan", "UltraGoal", "Browser", "code-review", "Debugger", "总结"];
+const chapters = ["开场", "认识平台", "Mermaid", "Plan", "UltraGoal", "Browser", "CodeReview", "Debugger", "总结"];
 
 const flowV1 = `flowchart LR
   A[上传 3D 文件] --> B[生成预览]
@@ -37,19 +38,27 @@ type CapabilityProps = {
   purpose: string;
   when: string;
   input: string;
+  action: string;
+  human: string;
   output: string;
 };
 
-function Capability({ purpose, when, input, output }: CapabilityProps) {
+function Capability({ purpose, when, input, action, human, output }: CapabilityProps) {
   return (
     <div className="capability-anatomy">
-      <div><small>它的功能</small><strong>{purpose}</strong></div>
-      <div><small>什么时候用</small><span>{when}</span></div>
-      <div><small>你要提供</small><span>{input}</span></div>
-      <div><small>最后得到</small><span>{output}</span></div>
+      <div><small>01 · 它的功能</small><strong>{purpose}</strong></div>
+      <div><small>02 · 什么时候用</small><span>{when}</span></div>
+      <div><small>03 · 你要提供</small><span>{input}</span></div>
+      <div><small>04 · AI 会执行</small><span>{action}</span></div>
+      <div><small>05 · 人类控制点</small><span>{human}</span></div>
+      <div><small>06 · 最后得到</small><span>{output}</span></div>
     </div>
   );
 }
+
+type TransitionDocument = Document & {
+  startViewTransition?: (update: () => void) => { finished: Promise<void> };
+};
 
 export default function Home() {
   const [scene, setScene] = useState(0);
@@ -66,8 +75,25 @@ export default function Home() {
   const go = useCallback((next: number) => {
     const safe = Math.max(0, Math.min(chapters.length - 1, next));
     if (safe === scene) return;
-    setDirection(safe > scene ? 1 : -1);
-    setScene(safe);
+    const nextDirection = safe > scene ? 1 : -1;
+    const doc = document as TransitionDocument;
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const changeScene = () => {
+      setDirection(nextDirection);
+      setScene(safe);
+    };
+
+    document.documentElement.dataset.navDirection = nextDirection > 0 ? "forward" : "backward";
+    document.documentElement.dataset.transitionAccent = Math.abs(safe - scene) > 1 || [4, 6, 8].includes(safe) ? "accent" : "push";
+
+    if (!reduceMotion && doc.startViewTransition) {
+      document.documentElement.classList.add("hf-transitioning");
+      const transition = doc.startViewTransition(() => flushSync(changeScene));
+      transition.finished.finally(() => document.documentElement.classList.remove("hf-transitioning"));
+      return;
+    }
+
+    changeScene();
   }, [scene]);
 
   useEffect(() => {
@@ -125,8 +151,8 @@ export default function Home() {
       <div className="paper-grain" />
       <header className="topbar">
         <button className="wordmark" onClick={() => go(0)}><b>C</b><span>Codex 入门课</span></button>
-        <p>一个 3D 资产平台 · 看懂六个能力</p>
-        <span>方向键 / 滚轮翻页</span>
+        <p>无需讲师 · 功能 → 输入 → AI 动作 → 人工确认 → 产物</p>
+        <span>方向键 / 滚轮 / 点击章节</span>
       </header>
 
       <nav className="chapter-rail" aria-label="章节导航">
@@ -134,14 +160,15 @@ export default function Home() {
       </nav>
 
       <section className="stage" aria-live="polite">
-        <div key={`wipe-${scene}`} className="soft-wipe"><i /><i /></div>
+        <div key={`wipe-${scene}`} className={`soft-wipe ${direction > 0 ? "forward" : "backward"}`} aria-hidden="true"><i /><i /><i /><b>{chapters[scene]}</b></div>
 
         {scene === 0 && (
           <article className={`${lessonClass} cover`}>
             <div className="cover-copy">
-              <div className="overline">CODEX FOR BEGINNERS · 15 MIN</div>
+              <div className="overline">SELF-GUIDED CODEX TOUR · 15 MIN</div>
               <h1>用 Codex，<br />开发一个<span>3D 仿真资产管理网站</span></h1>
-              <p>从一句需求开始，学会画流程、做计划、自动开发、浏览器测试、代码审查和调试。</p>
+              <p>不需要讲师。页面会用同一个真实案例，逐步解释画流程、做计划、自动开发、浏览器测试、代码审查和调试。</p>
+              <div className="self-guide"><span><b>01</b>先读一句话结论</span><span><b>02</b>再看六项能力说明</span><span><b>03</b>最后操作案例与复制提示词</span></div>
               <button className="primary" onClick={() => go(1)}>从资产生命周期开始 <b>→</b></button>
             </div>
             <div className="cover-product" aria-hidden="true">
@@ -162,7 +189,7 @@ export default function Home() {
             <div className="platform-brief">
               <div className="asset-definition"><small>什么是一个 3D 仿真资产？</small><h3>文件 + 数据 + 流程</h3><div className="asset-stack"><span><b>01</b>GLB / FBX 模型</span><span><b>02</b>贴图与材质</span><span><b>03</b>名称、标签、尺寸</span><span><b>04</b>版本与审核记录</span><span><b>05</b>发布到仿真环境</span></div></div>
               <div className="lifecycle"><small>核心流程</small>{[["上传","技术美术提交模型"],["转换","生成统一格式与缩略图"],["预览","浏览器检查模型和贴图"],["审核","负责人通过或退回"],["发布","进入正式仿真资产库"]].map(([t,d],i)=><div key={t}><b>0{i+1}</b><span><strong>{t}</strong><em>{d}</em></span></div>)}</div>
-              <div className="capability-route"><small>六个能力分别负责</small><div><b>Mermaid</b><span>画清生命周期</span></div><div><b>Plan</b><span>拆开发工作</span></div><div><b>UltraGoal</b><span>自动推进全项目</span></div><div><b>Browser</b><span>操作页面验证</span></div><div><b>code-review</b><span>合并前把关</span></div><div><b>Debugger</b><span>定位预览故障</span></div></div>
+              <div className="capability-route"><small>六个能力分别负责</small><div><b>Mermaid</b><span>画清生命周期</span></div><div><b>Plan</b><span>拆开发工作</span></div><div><b>UltraGoal</b><span>自动推进全项目</span></div><div><b>Browser</b><span>操作页面验证</span></div><div><b>CodeReview</b><span>合并前把关</span></div><div><b>Debugger</b><span>定位预览故障</span></div></div>
             </div>
             <div className="plain-note"><b>给小白的比喻</b><span>平台像一个 3D 模型仓库：每个模型有身份证、历史版本、质检记录和正式上架状态。</span></div>
           </article>
@@ -176,6 +203,8 @@ export default function Home() {
               purpose="把 AI 对业务与代码的理解，变成一张人类可以审阅的图"
               when="流程分支多、跨前后端，或你担心 AI 理解错需求时"
               input="相关代码范围、业务规则、需要标出的异常与权限"
+              action="读取文字与代码，画出 v1；根据人工批注补齐分支并迭代 v2"
+              human="审阅流程图，补充异常、权限和业务规则；确认 v2 后才允许改代码"
               output="Mermaid 源码、可视流程图，以及仍需人类确认的问题"
             />
             <div className="mermaid-layout">
@@ -204,6 +233,8 @@ export default function Home() {
               purpose="在修改代码前，生成可执行、可验证的实施方案"
               when="需求跨多个模块、存在依赖或验收标准还不清楚时"
               input="确认后的流程图、仓库现状、约束、优先级与成功标准"
+              action="把业务节点映射为模块、步骤、依赖、风险与测试，再等待人工调整"
+              human="调整范围、顺序、风险和验收标准；确认计划后再开始实现"
               output="需求摘要、验收条件、实施步骤、风险和验证方法"
             />
             <div className="plan-spread">
@@ -222,6 +253,8 @@ export default function Home() {
               purpose="Goal 保持一个目标持续可见；UltraGoal 管理一组长期子目标与检查点"
               when="小改动需要明确完成标准，或大型任务需要跨多轮持续执行时"
               input="目标、范围、约束、质量门，以及可以证明完成的证据"
+              action="拆解子目标，持续执行设计、开发、测试与性能排查，并记录检查点"
+              human="批准目标和质量门；外部写入、高风险或破坏性动作仍由人授权"
               output="Goal 状态；或 UltraGoal 的 brief、子目标、ledger 与最终质量报告"
             />
             <div className="comparison">
@@ -241,6 +274,8 @@ export default function Home() {
               purpose="使用真实浏览器读取页面、执行操作并验证最终状态"
               when="结果必须在网页、登录态或外部文档中被真实验证时"
               input="目标网址、已授权的登录状态、操作步骤和断言"
+              action="搜索、点击、旋转、提交并读取页面状态；经授权后也可写入飞书文档"
+              human="授权登录态与外部写入，定义断言，并复核截图和页面结果"
               output="页面结果、截图或断言证据，以及经授权创建的在线文档"
             />
             <div className="mode-tabs"><button className={browserMode==="test"?"active":""} onClick={()=>setBrowserMode("test")}>网站自动化测试</button><button className={browserMode==="docs"?"active":""} onClick={()=>setBrowserMode("docs")}>输出飞书云文档</button></div>
@@ -257,18 +292,20 @@ export default function Home() {
 
         {scene === 6 && (
           <article className={`${lessonClass} compare-scene review-compare`}>
-            <div className="section-no">05 · REVIEW VS OMX CODE-REVIEW</div>
-            <div className="statement"><h2>快速 Review 看当前改动，<br /><span>合并前建议用 OMX code-review。</span></h2><p>和 Goal / UltraGoal 类似：一个轻量直接，一个更独立、更完整、更适合作为质量门。</p></div>
+            <div className="section-no">05 · REVIEW VS OMX CODEREVIEW</div>
+            <div className="statement"><h2>快速 Review 看当前改动，<br /><span>合并前建议用 OMX CodeReview。</span></h2><p>和 Goal / UltraGoal 类似：一个轻量直接，一个更独立、更完整、更适合作为质量门。</p></div>
             <Capability
               purpose="在不修改代码的前提下，找出可执行的问题并决定是否适合合并"
               when="完成功能、准备提 PR，或 UltraGoal 进入最终质量门时"
               input="代码 diff、原始需求、架构约束和应该通过的测试"
+              action="reviewer 检查实现与测试，architect 检查边界；按严重级别整理证据"
+              human="判断哪些发现必须修复，复核证据，并作出是否合并的最终决定"
               output="严重级别、file:line 证据、修复建议，以及合并结论"
             />
             <div className="comparison">
               <div className="compare-card native"><div className="compare-title"><span>Codex 快速入口</span><h3>Review</h3></div><p>检查一个文件或一段 diff，快速找明显 Bug、性能问题和测试缺口。</p><Command title="平台里的用法" onCopy={copy}>{"/review 检查本次 3D 文件上传逻辑，重点看文件校验、权限、错误处理和测试。"}</Command><ul><li>速度快</li><li>适合开发中的小改动</li><li>结论依赖当前审查上下文</li></ul><div className="fit">适合：边写边检查</div></div>
               <div className="versus">VS</div>
-              <div className="compare-card recommended"><div className="recommended-badge">合并前推荐</div><div className="compare-title"><span>Oh My Codex</span><h3>code-review</h3></div><p>独立 code-reviewer 与 architect 两条视角，按严重级别输出 file:line 证据和合并建议。</p><Command title="平台里的用法" onCopy={copy}>{"$code-review 审查 3D 资产上传与转换分支：检查安全、正确性、性能、可维护性、测试和架构边界。"}</Command><ul><li>reviewer：代码、测试与风险</li><li>architect：存储与转换边界</li><li>输出 APPROVE / COMMENT / REQUEST CHANGES</li></ul><div className="fit strong">适合：PR 合并、UltraGoal 最终质量门</div></div>
+              <div className="compare-card recommended"><div className="recommended-badge">合并前推荐</div><div className="compare-title"><span>Oh My Codex</span><h3>CodeReview</h3></div><p>独立 code-reviewer 与 architect 两条视角，按严重级别输出 file:line 证据和合并建议。</p><Command title="平台里的用法" onCopy={copy}>{"调用 OMX CodeReview，审查 3D 资产上传与转换分支：检查安全、正确性、性能、可维护性、测试和架构边界。"}</Command><ul><li>reviewer：代码、测试与风险</li><li>architect：存储与转换边界</li><li>输出 APPROVE / COMMENT / REQUEST CHANGES</li></ul><div className="fit strong">适合：PR 合并、UltraGoal 最终质量门</div></div>
             </div>
             <div className="review-example"><b>本平台发现的 HIGH 问题</b><span>上传 ZIP 未防止路径穿越，并把 2GB 文件完整读入内存。</span><em>api/assets/upload.ts:71 · REQUEST CHANGES</em></div>
           </article>
@@ -282,6 +319,8 @@ export default function Home() {
               purpose="把模糊症状转化为稳定复现、已证明根因和最小修复"
               when="Bug 偶发、只在特定环境出现，或多次修改仍然复发时"
               input="症状、期望行为、复现线索、日志和最近变更"
+              action="稳定复现、比较环境差异、验证假设、实施最小修复并补回归测试"
+              human="确认复现条件与修复边界，审阅根因证据，避免扩大改动范围"
               output="复现步骤、根因证据、最小补丁和防止复发的回归测试"
             />
             <div className="debug-spread">
@@ -296,7 +335,7 @@ export default function Home() {
           <article className={`${lessonClass} summary-scene`}>
             <div className="section-no">07 · 现在你会选了</div>
             <div className="summary-title"><h2>开发一个 3D 资产平台，<br /><span>六个能力各司其职。</span></h2><p>先判断你遇到的是理解、计划、执行、验证、审查，还是调试问题。</p></div>
-            <div className="summary-list">{[["Mermaid","生命周期不清楚","先把上传、转换、审核和发布画出来"],["Plan","不知道如何实施","拆模块、依赖、风险与验收"],["OMX UltraGoal","项目跨很多阶段","推荐：自动推进设计、实现、测试和质量门"],["Browser","需要真实页面结果","搜索、预览、旋转、提交审核或写飞书"],["OMX code-review","准备合并代码","推荐：独立 reviewer + architect 审查"],["Debugger","预览故障根因不明","复现、证明、最小修复、跨平台回归"]].map(([n,w,d],i)=><div key={n}><b>0{i+1}</b><span><strong>{n}</strong><small>{w}</small></span><p>{d}</p></div>)}</div>
+            <div className="summary-list">{[["Mermaid","生命周期不清楚","先把上传、转换、审核和发布画出来"],["Plan","不知道如何实施","拆模块、依赖、风险与验收"],["OMX UltraGoal","项目跨很多阶段","推荐：自动推进设计、实现、测试和质量门"],["Browser","需要真实页面结果","搜索、预览、旋转、提交审核或写飞书"],["OMX CodeReview","准备合并代码","推荐：独立 reviewer + architect 审查"],["Debugger","预览故障根因不明","复现、证明、最小修复、跨平台回归"]].map(([n,w,d],i)=><div key={n}><b>0{i+1}</b><span><strong>{n}</strong><small>{w}</small></span><p>{d}</p></div>)}</div>
             <div className="closing"><b>给小白的一句话</b><span>先让 AI 把系统讲明白，再让 UltraGoal 自动做；每一步都要求留下可以检查的证据。</span></div>
             <button className="restart" onClick={()=>go(0)}>从头再看一次 ↺</button>
           </article>

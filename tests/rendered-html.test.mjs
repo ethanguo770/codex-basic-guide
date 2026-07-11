@@ -40,7 +40,7 @@ test("covers every requested capability and keeps the editorial design accessibl
     "PLAN × 流程图",
     "GOAL VS OMX ULTRAGOAL",
     "BROWSER PLUGIN",
-    "REVIEW VS OMX CODE-REVIEW",
+    "REVIEW VS OMX CODEREVIEW",
     "DEBUGGER",
   ]) assert.match(page, new RegExp(required));
 
@@ -48,9 +48,15 @@ test("covers every requested capability and keeps the editorial design accessibl
   assert.match(page, /它的功能/);
   assert.match(page, /什么时候用/);
   assert.match(page, /你要提供/);
+  assert.match(page, /AI 会执行/);
+  assert.match(page, /人类控制点/);
   assert.match(page, /最后得到/);
+  assert.match(page, /不需要讲师/);
+  assert.match(page, /startViewTransition/);
   assert.doesNotMatch(page, /小游戏|VISUALIZE|\bVIS\b/);
   assert.match(css, /prefers-reduced-motion/);
+  assert.match(css, /view-transition-name:lesson-stage/);
+  assert.match(css, /hf-accent-new/);
   assert.doesNotMatch(css, /infinite/);
   assert.match(design, /warm editorial|Claude-like/);
   assert.match(layout, /lang="zh-CN"/);

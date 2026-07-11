@@ -4,7 +4,7 @@
 
 - Status: Active
 - Last refreshed: 2026-07-11
-- Primary product surfaces: single-page, full-screen interactive teaching deck
+- Primary product surfaces: single-page, full-screen self-guided teaching experience
 - Evidence reviewed: current React/CSS site, prior HyperFrames motion direction, user feedback requesting beginner clarity, Claude-like hierarchy, and a single 3D simulation asset-management case
 
 ## Brand
@@ -15,7 +15,7 @@
 
 ## Product goals
 
-- Goals: help first-time Codex users understand six capabilities by following development of a 3D simulation asset-management website
+- Goals: help first-time Codex users independently understand six capabilities without a presenter, by following development of a 3D simulation asset-management website
 - Non-goals: building a production WebGL engine, exhaustive CLI reference, copying another product’s visual identity
 - Success signals: viewers can explain which command to use for understanding, planning, long execution, browser validation, review, and debugging
 
@@ -36,7 +36,7 @@
 - One idea per scene; hide secondary detail until the primary point is understood
 - Demonstrate every command inside the same asset lifecycle: upload → convert → preview → review → publish
 - Compare native Codex and OMX with parallel structure and an explicit recommendation
-- Give every capability the same four-part anatomy: function, use moment, required input, final output
+- Give every capability the same six-part anatomy: function, use moment, required input, AI action, human control point, final output
 - Tradeoff: less reference density in exchange for beginner comprehension
 
 ## Visual language
@@ -45,7 +45,7 @@
 - Typography: Georgia-style editorial serif for teaching statements; Geist sans for explanation; Geist Mono for commands, asset IDs, and evidence
 - Spacing/layout rhythm: generous outer margins, 8px rhythm, asymmetric 40/60 and 45/55 split frames
 - Shape/radius/elevation: mostly square editorial panels, small radii on controls and asset cards, restrained shadows
-- Motion: 450–650ms page push, short importance-first stagger, finite CSS 3D rotations only when the user acts, reduced-motion fallback
+- Motion: HyperFrames-inspired 760ms page push as the primary transition; diagonal mask for major topic changes; short importance-first stagger; finite CSS 3D rotations only when the user acts; reduced-motion fallback
 - Imagery/iconography: CSS 3D model proxy, metadata panels, flow diagrams; no stock art or authored SVG
 
 ## Components
@@ -81,7 +81,7 @@
 ## Content voice
 
 - Tone: plain Chinese, short sentences, jargon explained immediately
-- Terminology: “原生 Goal” vs “OMX UltraGoal”; “快速 Review” vs “OMX code-review”
+- Terminology: “原生 Goal” vs “OMX UltraGoal”; “快速 Review” vs “OMX CodeReview”
 - Microcopy: every scene answers “它做什么 / 什么时候用 / 在这个平台里怎么用”
 
 ## Implementation constraints
