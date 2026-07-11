@@ -329,11 +329,11 @@ export default function Home() {
           <article className={`${lessonClass} appendix-scene`}>
             <div className="section-no">附录 · OH MY CODEX</div>
             <div className="statement"><h2>Oh My Codex：<br /><span>把零散的 AI 命令，变成可以持续运行的开发流程。</span></h2><p>它不是另一个 AI 模型，而是 Codex 的工作流与多智能体扩展：负责澄清需求、规划、长期执行、协作、Review 和质量检查。</p></div>
-            <div className={revealClass(1, "omx-intro")}><div><small>官方项目地址</small><a href="https://github.com/Yeachan-Heo/oh-my-codex" target="_blank" rel="noreferrer">github.com/Yeachan-Heo/oh-my-codex ↗</a></div><p><b>适合谁？</b><span>经常让 Codex 开发完整功能，希望任务能自动推进、失败可恢复、结果有独立检查的人。</span></p></div>
-            <div className={revealClass(2, "omx-command-groups")}>
+            <div className={revealClass(1, "omx-command-groups")}>
               {[["先想清楚",[["$deep-interview","通过提问把模糊需求问清楚"],["$ralplan","让多个角色共同检查并完善计划"]]],["自动执行",[["$autopilot","串起规划、执行、Review 和 QA 的完整闭环"],["$team","让多个智能体并行处理不同子任务"]]],["质量提升",[["$ultraqa","生成更刁钻的端到端场景并反复验证"],["$performance-goal","持续定位和优化性能问题"]]],["项目维护",[["$wiki","把项目知识保存成可搜索的长期文档"],["$doctor","检查 Oh My Codex 是否安装和运行正常"]]]].map(([group,items])=><section key={group as string}><h3>{group as string}</h3>{(items as string[][]).map(([command,description])=><div key={command}><code>{command}</code><span>{description}</span></div>)}</section>)}
             </div>
-            <div className={revealClass(3, "recommendation coral")}><b>新手建议</b><span>先从 PLAN x 流程图、UltraGoal 和 OMX CodeReview 开始；任务更复杂后，再尝试 Autopilot、Team 与 UltraQA。</span></div>
+            <div className={revealClass(2, "recommendation coral")}><b>新手建议</b><span>先从 PLAN x 流程图、UltraGoal 和 OMX CodeReview 开始；任务更复杂后，再尝试 Autopilot、Team 与 UltraQA。</span></div>
+            <div className={revealClass(3, "omx-intro")}><div><small>官方项目地址</small><a href="https://github.com/Yeachan-Heo/oh-my-codex" target="_blank" rel="noreferrer">github.com/Yeachan-Heo/oh-my-codex ↗</a></div><p><b>说明</b><span>本页链接采用 Oh My Codex 官方 GitHub 项目，便于继续查看安装方式、完整命令和更新说明。</span></p></div>
           </article>
         )}
       </section>
