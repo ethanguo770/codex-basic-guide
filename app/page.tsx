@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-const chapters = ["开场", "认识平台", "Mermaid", "Plan", "UltraGoal", "Browser", "CodeReview", "Debugger", "总结"];
-const sceneMaxSteps = [2, 2, 5, 4, 4, 5, 4, 4, 2] as const;
+const chapters = ["开场", "认识平台", "PLAN x Mermaid", "UltraGoal", "Browser", "CodeReview", "Debugger", "总结"];
+const sceneMaxSteps = [2, 2, 5, 4, 5, 4, 4, 2] as const;
 
 const flowV1 = `flowchart LR
   A[上传 3D 文件] --> B[生成预览]
@@ -142,9 +142,9 @@ export default function Home() {
   const maxReveal = sceneMaxSteps[scene];
   const progress = `${((scene + (revealStep + 1) / (maxReveal + 1)) / chapters.length) * 100}%`;
   const revealClass = (step: number, className = "") => `${className} reveal-block ${revealStep >= step ? "revealed" : ""}`;
-  const flowStep = scene === 2 ? (revealStep >= 5 ? 3 : revealStep >= 4 ? 1 : 0) : 0;
-  const angle = scene === 5 ? (revealStep >= 4 ? 3 : revealStep >= 3 ? 1 : 0) : 0;
-  const testStatus: "idle" | "running" | "passed" = scene === 5 ? (revealStep >= 4 ? "passed" : revealStep >= 3 ? "running" : "idle") : "idle";
+  const flowStep = scene === 2 ? (revealStep >= 5 ? 4 : revealStep >= 4 ? 3 : revealStep >= 3 ? 2 : revealStep >= 2 ? 1 : 0) : 0;
+  const angle = scene === 4 ? (revealStep >= 4 ? 3 : revealStep >= 3 ? 1 : 0) : 0;
+  const testStatus: "idle" | "running" | "passed" = scene === 4 ? (revealStep >= 4 ? "passed" : revealStep >= 3 ? "running" : "idle") : "idle";
 
   return (
     <main className="guide">
@@ -166,7 +166,7 @@ export default function Home() {
             <div className="cover-copy">
               <div className="overline">FROM PROMPT TO PROOF · CODEX</div>
               <h1>Codex小技巧<span className="case-title">用一个 3D 仿真资产管理网站，读懂 AI 开发闭环</span></h1>
-              <p>这不是命令清单。六个技巧会分别帮你看懂复杂流程、提前想清楚怎么做、持续完成大任务、检查真实网页、审查代码和定位 Bug。</p>
+              <p>这不是命令清单。五个技巧会分别帮你想清楚怎么做、持续完成大任务、自动操作网页、审查代码和定位 Bug。</p>
               <div className={revealClass(1, "cover-thesis")}><b>你会学到什么</b><span>先把事情看明白，再让 AI 开始做，最后检查它是否真的做好了。</span></div>
               <button className={revealClass(2, "primary")} onClick={() => go(1)}>从资产生命周期开始 <b>→</b></button>
             </div>
@@ -188,65 +188,46 @@ export default function Home() {
             <div className={revealClass(1, "platform-brief")}>
               <div className="asset-definition"><small>什么是一个 3D 仿真资产？</small><h3>文件 + 数据 + 流程</h3><div className="asset-stack"><span><b>01</b>GLB / FBX 模型</span><span><b>02</b>贴图与材质</span><span><b>03</b>名称、标签、尺寸</span><span><b>04</b>版本与审核记录</span><span><b>05</b>发布到仿真环境</span></div></div>
               <div className="lifecycle"><small>核心流程</small>{[["上传","技术美术提交模型"],["转换","生成统一格式与缩略图"],["预览","浏览器检查模型和贴图"],["审核","负责人通过或退回"],["发布","进入正式仿真资产库"]].map(([t,d],i)=><div key={t}><b>0{i+1}</b><span><strong>{t}</strong><em>{d}</em></span></div>)}</div>
-              <div className="capability-route"><small>六个技巧分别解决什么问题</small><div><b>Mermaid</b><span><strong>把流程画清楚</strong><em>避免一开始就理解错</em></span></div><div><b>Plan</b><span><strong>先列清楚做法</strong><em>避免做到一半返工</em></span></div><div><b>UltraGoal</b><span><strong>让大项目持续跑到完成</strong><em>中断、失败也能接着做</em></span></div><div><b>Browser</b><span><strong>自动测试 + 写飞书</strong><em>替你操作真实网页</em></span></div><div><b>CodeReview</b><span><strong>合并前再检查</strong><em>找出自己没看到的问题</em></span></div><div><b>Debugger</b><span><strong>先找到真正原因</strong><em>避免乱改代码</em></span></div></div>
+              <div className="capability-route"><small>五个技巧分别解决什么问题</small><div><b>PLAN x Mermaid</b><span><strong>文字计划和流程图一起看</strong><em>先让人看懂并确认，再写代码</em></span></div><div><b>UltraGoal</b><span><strong>让大项目持续跑到完成</strong><em>中断、失败也能接着做</em></span></div><div><b>Browser</b><span><strong>自动测试 + 写飞书</strong><em>替你操作真实网页</em></span></div><div><b>CodeReview</b><span><strong>合并前再检查</strong><em>找出自己没看到的问题</em></span></div><div><b>Debugger</b><span><strong>先找到真正原因</strong><em>避免乱改代码</em></span></div></div>
             </div>
             <div className={revealClass(2, "plain-note")}><b>给小白的比喻</b><span>平台像一个 3D 模型仓库：每个模型有身份证、历史版本、质检记录和正式上架状态。</span></div>
           </article>
         )}
 
         {scene === 2 && (
-          <article className={`${lessonClass} mermaid-scene`}>
-            <div className="section-no">01 · MERMAID</div>
-            <div className="statement"><h2>Mermaid：<br /><span>把一大段文字变成流程图。</span></h2><p>先让 AI 把它理解的步骤画出来，你只需要看图检查哪里不对，再让它重新调整。</p></div>
+          <article className={`${lessonClass} mermaid-scene plan-mermaid-scene`}>
+            <div className="section-no">01 · PLAN x Mermaid</div>
+            <div className="statement"><h2>Plan 负责想清楚怎么做，<br /><span>Mermaid 负责让人一眼看懂并检查。</span></h2><p>要求 AI 在输出文字 Plan 的同时画出流程图。人先看图找遗漏，让 AI 同步修改 Plan 和图，确认后才开始写代码。</p></div>
             <Capability
               className={revealClass(1)}
               revealStep={revealStep}
-              purpose="把复杂的需求、代码流程或工作步骤，画成大家都看得懂的图。"
-              when="一件事有很多步骤和分支，光看文字很容易漏掉内容时。"
-              input="要看哪些代码、事情要经过哪些步骤，以及哪些特殊情况要标出来。"
-              output="一张可以继续修改的 Mermaid 流程图，以及需要你确认的问题。"
+              purpose="先得到有顺序的开发计划，再用流程图把步骤、分支和异常情况讲明白。"
+              when="功能涉及多个模块，文字计划不容易快速看懂，也担心 AI 理解错需求时。"
+              input="需求、相关代码、不能违反的限制，以及最后怎样才算完成。"
+              output="一份文字 Plan、一张配套 Mermaid 图，以及需要人确认的问题。"
             />
             <div className={revealClass(3, "mermaid-layout")}>
               <div className="mermaid-left">
-                <Command title="直接这样问" onCopy={copy}>{"不要修改代码。先把 3D 资产从上传、转换、预览、审核到发布的流程输出为 Mermaid；标出格式校验、重复版本、转换失败和权限分支。"}</Command>
-                <div className="iteration-steps" aria-label="Mermaid 滚轮迭代过程">
-                  {[["1","AI 画出 v1","先看它怎样理解"],["2","人类 Review","指出缺少失败与权限分支"],["3","补充规则","加入重复版本、重试和退回"],["4","确认 v2","再同步 Plan 和代码"]].map(([n,t,d],i)=><div key={n} className={flowStep===i?"active":flowStep>i?"done":""}><b>{n}</b><span><strong>{t}</strong><small>{d}</small></span></div>)}
+                <Command title="PLAN x Mermaid 示例" onCopy={copy}>{'$plan --direct "不要修改代码。先为 3D 资产上传、转换、预览、审核和发布制定开发 Plan；同时输出 Mermaid 流程图，标出格式校验、重复版本、转换失败、退回和权限分支。列出需要人确认的问题。"'}</Command>
+                <div className="iteration-steps" aria-label="PLAN 与 Mermaid 人工审阅过程">
+                  {[["1","AI 阅读需求和代码","理解现状与限制"],["2","输出文字 Plan","列模块、顺序和测试"],["3","同时输出 Mermaid","把步骤与分支画出来"],["4","人看图 Review","指出失败、权限和退回遗漏"],["5","同步修改后开工","Plan 与图确认后再写代码"]].map(([n,t,d],i)=><div key={n} className={flowStep===i?"active":flowStep>i?"done":""}><b>{n}</b><span><strong>{t}</strong><small>{d}</small></span></div>)}
                 </div>
               </div>
               <div className="mermaid-right">
-                <div className="editor-tabs"><b className={flowStep<2?"active":""}>AI 初稿 v1</b><b className={flowStep>=2?"active":""}>人工调整后 v2</b><span>{flowStep>=2?"分支完整":"待人工审阅"}</span></div>
-                <pre>{flowStep>=2?flowV2:flowV1}</pre>
-                <div className={`simple-flow ${flowStep>=2?"complete":""}`}><span>上传</span><i>→</i><span className="diamond">校验</span><i>→</i><span>转换</span><i>→</i><span>预览</span><i>→</i><span>{flowStep>=2?"通过 / 退回":"发布"}</span></div>
-                {flowStep===1&&<div className="human-comment">人类批注：转换失败呢？版本重复呢？谁可以发布？</div>}
+                <div className="editor-tabs"><b className="active">文字 Plan</b><b className="active">Mermaid 流程图</b><span>{flowStep>=4?"已同步定稿":"等待人工确认"}</span></div>
+                <div className="plan-outline"><span><b>模块</b>上传、转换、预览、审核</span><span><b>顺序</b>先校验，再转换，最后发布</span><span><b>验收</b>正常与失败分支都要测试</span></div>
+                <pre>{flowStep>=4?flowV2:flowV1}</pre>
+                <div className={`simple-flow ${flowStep>=4?"complete":""}`}><span>上传</span><i>→</i><span className="diamond">校验</span><i>→</i><span>转换</span><i>→</i><span>预览</span><i>→</i><span>{flowStep>=4?"通过 / 退回":"发布"}</span></div>
+                {flowStep===3&&<div className="human-comment">人类批注：转换失败呢？版本重复呢？谁可以发布？</div>}
               </div>
             </div>
-            <div className={revealClass(5, "recommendation")}><b>正确顺序</b><span>AI 画图 → 人类审阅 → 补规则 → AI 按最佳实践调整 → 定稿后再修改 Plan、代码与测试。</span></div>
+            <div className={revealClass(5, "recommendation")}><b>推荐工作流</b><span>需求与代码 → AI 输出 Plan + Mermaid → 人看图 Review → AI 同步修改 → 确认后再写代码和测试。</span></div>
           </article>
         )}
 
         {scene === 3 && (
-          <article className={`${lessonClass} plan-scene`}>
-            <div className="section-no">02 · PLAN x Mermaid</div>
-            <div className="statement"><h2>Plan：<br /><span>开始写代码前，先把怎么做列清楚。</span></h2><p>它会告诉你先做什么、后做什么、要改哪些地方，以及最后怎样检查功能是否真的完成。</p></div>
-            <Capability
-              className={revealClass(1)}
-              revealStep={revealStep}
-              purpose="把“我要做这个功能”拆成一份有顺序、能检查的施工清单。"
-              when="功能不止改一个地方，或者你还不知道应该先做什么时。"
-              input="确认过的流程图、现有代码、不能违反的限制和完成标准。"
-              output="要改哪些地方、按什么顺序、怎么测试，以及什么才算完成。"
-            />
-            <div className={revealClass(3, "plan-spread")}>
-              <div className="plan-prompt"><Command title="Plan 示例" onCopy={copy}>{'$plan --direct "根据确认后的 3D 资产生命周期流程图制定开发计划；包含资产库、上传、转换、在线预览、版本、权限、审核、测试和验收。"'}</Command><div className="plan-tip"><b>Plan 最少要有</b><span>模块与边界</span><span>开发顺序和依赖</span><span>失败与回滚策略</span><span>可以验证的完成标准</span></div></div>
-              <div className="plan-paper"><small>3D 仿真资产平台 · 开发计划</small>{[["01","资产列表","搜索、标签和版本状态"],["02","上传与格式转换","检查文件、上传并生成网页可用格式"],["03","网页 3D 预览","查看模型、贴图、尺寸和旋转效果"],["04","审核与发布","提交、退回、批准和正式发布"],["05","测试与验收","检查代码、接口、网页操作和加载速度"]].map(([n,t,d])=><div key={n}><b>{n}</b><span><strong>{t}</strong><em>{d}</em></span></div>)}</div>
-              <div className={revealClass(4, "plan-link")}><span>流程图规则变化</span><i>→</i><span>Plan 同步模块与测试</span><i>→</i><b>再开始改代码</b></div>
-            </div>
-          </article>
-        )}
-
-        {scene === 4 && (
           <article className={`${lessonClass} compare-scene`}>
-            <div className="section-no">03 · GOAL VS OMX ULTRAGOAL</div>
+            <div className="section-no">02 · GOAL VS OMX ULTRAGOAL</div>
             <div className="statement"><h2>Goal 盯住一个任务，<br /><span>UltraGoal 把一个大项目持续做到验收通过。</span></h2><p>它不只是“拆任务”：进度会保存在项目里；中断后可以继续，失败后可以重试，检查不通过就不会假装已经完成。</p></div>
             <Capability
               className={revealClass(1)}
@@ -265,9 +246,9 @@ export default function Home() {
           </article>
         )}
 
-        {scene === 5 && (
+        {scene === 4 && (
           <article className={`${lessonClass} browser-scene`}>
-            <div className="section-no">04 · BROWSER PLUGIN</div>
+            <div className="section-no">03 · BROWSER PLUGIN</div>
             <div className="statement"><h2>Browser 插件：<br /><span>自动完成网页测试，也能自动编写飞书云文档。</span></h2><p>给它网址、步骤和正确结果，它可以从头跑完整测试并留下证据；飞书文档在网页端授权后，把链接复制到 Codex Chrome 插件，它就能进入指定文档继续操作。</p></div>
             <Capability
               className={revealClass(1)}
@@ -293,9 +274,9 @@ export default function Home() {
           </article>
         )}
 
-        {scene === 6 && (
+        {scene === 5 && (
           <article className={`${lessonClass} compare-scene review-compare`}>
-            <div className="section-no">05 · REVIEW VS OMX CODEREVIEW</div>
+            <div className="section-no">04 · REVIEW VS OMX CODEREVIEW</div>
             <div className="statement"><h2>CodeReview：<br /><span>在合并代码前，请另一组 AI 帮你挑问题。</span></h2><p>它会重点检查有没有 Bug、安全风险、性能问题和缺少的测试，并告诉你是否适合合并。</p></div>
             <Capability
               className={revealClass(1)}
@@ -314,9 +295,9 @@ export default function Home() {
           </article>
         )}
 
-        {scene === 7 && (
+        {scene === 6 && (
           <article className={`${lessonClass} debug-scene`}>
-            <div className="section-no">06 · DEBUGGER</div>
+            <div className="section-no">05 · DEBUGGER</div>
             <div className="statement"><h2>Debugger：<br /><span>先查清 Bug 为什么发生，再动手修改。</span></h2><p>它不会一上来就猜着改代码，而是先让问题稳定出现，再一步步缩小范围并确认真正原因。</p></div>
             <Capability
               className={revealClass(1)}
@@ -334,11 +315,11 @@ export default function Home() {
           </article>
         )}
 
-        {scene === 8 && (
+        {scene === 7 && (
           <article className={`${lessonClass} summary-scene`}>
-            <div className="section-no">07 · 现在你会选了</div>
-            <div className="summary-title"><h2>六个小技巧，<br /><span>各自解决一个常见问题。</span></h2><p>先看看自己现在卡在哪里，再选择对应的能力。</p></div>
-            <div className={revealClass(1, "summary-list")}>{[["Mermaid","流程太复杂，看不懂","最后得到：一张大家都确认过的流程图"],["Plan","知道要做什么，却不知道怎么开始","最后得到：有顺序、有检查方法的开发计划"],["OMX UltraGoal","大项目跨很多阶段，容易中断或漏验收","最后得到：可恢复的执行进度，以及通过测试和 Review 的完整产物"],["Browser","测试网页和写飞书文档太重复","最后得到：完整自动化测试证据，以及已编写好的飞书云文档"],["OMX CodeReview","自己写的代码容易看漏问题","最后得到：问题位置、修改建议和是否合并的结论"],["Debugger","只看到了 Bug，却不知道真正原因","最后得到：复现方法、真正原因、修改和防复发测试"]].map(([n,w,d],i)=><div key={n}><b>0{i+1}</b><span><strong>{n}</strong><small>{w}</small></span><p>{d}</p></div>)}</div>
+            <div className="section-no">06 · 现在你会选了</div>
+            <div className="summary-title"><h2>五个小技巧，<br /><span>组成一条完整的 AI 开发流程。</span></h2><p>先让人看懂和确认，再让 AI 执行，最后用真实证据检查结果。</p></div>
+            <div className={revealClass(1, "summary-list")}>{[["PLAN x Mermaid","计划太长，不容易发现 AI 理解错了哪里","最后得到：文字 Plan、配套流程图和人工确认后的规则"],["OMX UltraGoal","大项目跨很多阶段，容易中断或漏验收","最后得到：可恢复的执行进度，以及通过测试和 Review 的完整产物"],["Browser","测试网页和写飞书文档太重复","最后得到：完整自动化测试证据，以及已编写好的飞书云文档"],["OMX CodeReview","自己写的代码容易看漏问题","最后得到：问题位置、修改建议和是否合并的结论"],["Debugger","只看到了 Bug，却不知道真正原因","最后得到：复现方法、真正原因、修改和防复发测试"]].map(([n,w,d],i)=><div key={n}><b>0{i+1}</b><span><strong>{n}</strong><small>{w}</small></span><p>{d}</p></div>)}</div>
             <div className={revealClass(2, "closing")}><b>给小白的一句话</b><span>先让 AI 把系统讲明白，再让 UltraGoal 自动做；每一步都要求留下可以检查的证据。</span></div>
             <button className={revealClass(2, "restart")} onClick={()=>go(0)}>从头再看一次 ↺</button>
           </article>

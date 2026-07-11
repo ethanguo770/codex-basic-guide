@@ -15,15 +15,14 @@
 
 ## Product goals
 
-- Goals: help first-time Codex users independently understand six capabilities without a presenter, by following development of a 3D simulation asset-management website
+- Goals: help first-time Codex users independently understand five practical workflows without a presenter, by following development of a 3D simulation asset-management website
 - Non-goals: building a production WebGL engine, exhaustive CLI reference, copying another product’s visual identity
-- Success signals: viewers can explain which command to use for understanding, planning, long execution, browser validation, review, and debugging
+- Success signals: viewers understand that Mermaid is a reviewable Plan output, then can choose UltraGoal, Browser, CodeReview, or Debugger for the next stage
 
 ## Concept model
 
 - Page title: `Codex小技巧`
-- Mermaid turns long text into a flowchart people can review together.
-- Plan lists what to do, in what order, and how to check completion before coding starts.
+- PLAN x Mermaid produces a written implementation plan and a matching flowchart; people review the visual flow, then AI synchronizes both artifacts before coding starts.
 - UltraGoal persists the project plan and progress, resumes across sessions, retries failed work, supports evidence-backed steering, and only finishes after testing and independent review pass.
 - Browser completes full browser-based test flows. For Feishu, the user authorizes the document in the web app, copies its URL into the Codex Chrome plugin, and the agent opens, fills, formats, saves, and verifies that exact document.
 - CodeReview asks independent reviewers to find problems before code is merged.
@@ -39,7 +38,7 @@
 ## Information architecture
 
 - Primary navigation: linear chapters with keyboard, wheel, and chapter rail
-- Core screens: cover, platform brief, Mermaid, Plan, Goal comparison, Browser demo, Review comparison, Debugger, summary
+- Core screens: cover, platform brief, PLAN x Mermaid, Goal comparison, Browser demo, Review comparison, Debugger, summary
 - Content hierarchy: one large teaching statement → one concrete 3D asset example → one takeaway or recommendation
 
 ## Design principles
@@ -63,7 +62,7 @@
 
 - Existing components to reuse: chapter navigation, command copy surface, progress footer
 - New/changed components: capability anatomy strip, native-vs-OMX comparison spread, asset lifecycle diagram, interactive 3D viewer proxy, review verdict, debugger trace
-- Variants and states: active chapter, reveal step, recommended option, wheel-controlled Mermaid iteration, wheel-controlled browser-test progress, viewer angle, copied prompt
+- Variants and states: active chapter, reveal step, recommended option, wheel-controlled PLAN/Mermaid review iteration, wheel-controlled browser-test progress, viewer angle, copied prompt
 - Token/component ownership: CSS variables in `app/globals.css`; teaching content in `app/page.tsx`
 
 ## Accessibility

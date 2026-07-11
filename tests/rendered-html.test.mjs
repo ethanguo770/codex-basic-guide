@@ -50,8 +50,9 @@ test("covers every requested capability and keeps the editorial design accessibl
   assert.match(page, /你只要告诉 AI/);
   assert.match(page, /它会交给你/);
   assert.match(page, /Codex小技巧/);
-  assert.match(page, /把一大段文字变成流程图/);
-  assert.match(page, /开始写代码前，先把怎么做列清楚/);
+  assert.match(page, /Plan 负责想清楚怎么做/);
+  assert.match(page, /Mermaid 负责让人一眼看懂并检查/);
+  assert.match(page, /AI 输出 Plan \+ Mermaid → 人看图 Review/);
   assert.match(page, /持续做到验收通过/);
   assert.match(page, /自动完成网页测试，也能自动编写飞书云文档/);
   assert.match(page, /请另一组 AI 帮你挑问题/);
@@ -69,6 +70,7 @@ test("covers every requested capability and keeps the editorial design accessibl
   assert.match(page, /滚轮逐步展开/);
   assert.match(page, /AUTOMATION STEPS · 随滚轮推进/);
   assert.doesNotMatch(page, /Mermaid 自动迭代|AUTOMATION STEPS · 自动推进/);
+  assert.doesNotMatch(page, /01 · MERMAID|六个小技巧|六个技巧分别解决什么问题/);
   assert.doesNotMatch(page, /startViewTransition|mode-tabs|演示 Browser 自动测试/);
   assert.doesNotMatch(page, /无需讲师 · 功能/);
   assert.doesNotMatch(page, /人类控制点|AI 会执行|可审计的 ledger|架构边界|最终质量门/);
