@@ -321,7 +321,6 @@ export default function Home() {
             <div className="summary-title"><h2>五个小技巧，<br /><span>组成一条完整的 AI 开发流程。</span></h2><p>先让人看懂和确认，再让 AI 执行，最后用真实证据检查结果。</p></div>
             <div className={revealClass(1, "summary-list")}>{[["PLAN x 流程图（Mermaid）","计划太长，不容易发现 AI 理解错了哪里","最后得到：文字 Plan、多张配套流程图和人工确认后的规则"],["OMX UltraGoal","大项目跨很多阶段，容易中断或漏验收","最后得到：可恢复的执行进度，以及通过测试和 Review 的完整产物"],["Browser","测试网页和写飞书文档太重复","最后得到：完整自动化测试证据，以及已编写好的飞书云文档"],["OMX CodeReview","自己写的代码容易看漏问题","最后得到：问题位置、修改建议和是否合并的结论"],["Debugger","只看到了 Bug，却不知道真正原因","最后得到：复现方法、真正原因、修改和防复发测试"]].map(([n,w,d],i)=><div key={n}><b>0{i+1}</b><span><strong>{n}</strong><small>{w}</small></span><p>{d}</p></div>)}</div>
             <div className={revealClass(2, "closing")}><b>给小白的一句话</b><span>先让 AI 把系统讲明白，再让 UltraGoal 自动做；每一步都要求留下可以检查的证据。</span></div>
-            <button className={revealClass(2, "restart")} onClick={()=>go(0)}>从头再看一次 ↺</button>
           </article>
         )}
 
@@ -334,6 +333,7 @@ export default function Home() {
             </div>
             <div className={revealClass(2, "recommendation coral")}><b>新手建议</b><span>先从 PLAN x 流程图、UltraGoal 和 OMX CodeReview 开始；任务更复杂后，再尝试 Autopilot、Team 与 UltraQA。</span></div>
             <div className={revealClass(3, "omx-intro")}><div><small>官方项目地址</small><a href="https://github.com/Yeachan-Heo/oh-my-codex" target="_blank" rel="noreferrer">github.com/Yeachan-Heo/oh-my-codex ↗</a></div><p><b>说明</b><span>本页链接采用 Oh My Codex 官方 GitHub 项目，便于继续查看安装方式、完整命令和更新说明。</span></p></div>
+            <button className={revealClass(3, "restart")} onClick={()=>go(0)}>从头再看一次 ↺</button>
           </article>
         )}
       </section>

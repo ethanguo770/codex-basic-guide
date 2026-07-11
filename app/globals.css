@@ -55,6 +55,7 @@
 @media(min-width:781px){
 .stage{bottom:50px}.footer{height:50px}
 .lesson:not(.cover){justify-content:flex-start;gap:8px;padding-top:36px;padding-bottom:14px}
+.lesson.plan-mermaid-scene{justify-content:center;padding-top:18px;padding-bottom:18px}
 .lesson:not(.cover) .statement h2,.lesson:not(.cover) .summary-title h2{font-size:clamp(31px,3vw,48px)}
 .lesson:not(.cover) .statement>p,.lesson:not(.cover) .summary-title>p{max-width:520px;font-size:11px;line-height:1.42}
 .lesson:not(.cover) .capability-anatomy>div{min-height:46px;padding:6px 10px}
@@ -66,5 +67,5 @@
 .browser-scene .browser-sequence{min-height:270px}.browser-scene .browser-sequence .browser-spread{min-height:228px}.browser-scene .browser-sequence .asset-app{height:194px}.browser-scene .browser-instruction{padding:8px}.browser-scene .test-log{gap:4px;margin-top:7px}.browser-scene .docs-compact{min-height:228px;padding:7px}.browser-scene .docs-compact .prompt-card pre{max-height:46px;padding:6px;font-size:7px;line-height:1.3}.browser-scene .docs-compact .permission-note{padding:5px;font-size:7px}.browser-scene .docs-compact .doc-page{min-height:112px;padding:10px 6%}.browser-scene .docs-compact .doc-page h3{font-size:15px}.browser-scene .docs-compact .doc-page h4{margin:4px 0 2px}.browser-scene .docs-compact .doc-table span{padding:2px 0}
 .review-compare .review-example{padding:7px 11px;font-size:9px}
 .debug-scene .debug-spread{min-height:270px}.debug-scene .debug-spread>div:first-child{padding:10px}.debug-scene .debug-analogy{gap:4px;margin-top:7px}.debug-scene .debug-analogy span{padding:4px 6px}.debug-scene .timeline{padding:9px}.debug-scene .timeline>div{min-height:39px;padding:4px 8px}.debug-scene .debug-chain{padding:7px}
-.summary-scene .summary-list>div{padding:7px 10px}.appendix-scene .omx-intro>div,.appendix-scene .omx-intro>p{padding:10px 13px}.appendix-scene .omx-command-groups section{padding:10px}.appendix-scene .omx-command-groups h3{margin-bottom:6px}.appendix-scene .omx-command-groups section>div{min-height:48px;padding:6px 0}
+.summary-scene .summary-list>div{padding:7px 10px}.appendix-scene .omx-intro>div,.appendix-scene .omx-intro>p{padding:10px 13px}.appendix-scene .omx-command-groups section{padding:10px}.appendix-scene .omx-command-groups h3{margin-bottom:6px}.appendix-scene .omx-command-groups section>div{min-height:48px;padding:6px 0}.appendix-scene .restart{margin-top:0}
 }

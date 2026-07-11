@@ -66,6 +66,8 @@ test("covers every requested capability and keeps the editorial design accessibl
   assert.match(page, /已授权的飞书云文档链接/);
   assert.match(page, /OMX CodeReview：/);
   assert.match(page, /github\.com\/Yeachan-Heo\/oh-my-codex/);
+  assert.doesNotMatch(page, /summary-scene[\s\S]*?revealClass\(2, "restart"\)/);
+  assert.match(page, /appendix-scene[\s\S]*?revealClass\(3, "restart"\)/);
   assert.match(page, /\$deep-interview/);
   assert.match(page, /\$ultraqa/);
   assert.match(page, /transitionLock/);
@@ -87,6 +89,7 @@ test("covers every requested capability and keeps the editorial design accessibl
   assert.match(css, /reveal-block/);
   assert.match(css, /\.plan-mermaid-scene\{justify-content:flex-start/);
   assert.match(css, /\.lesson:not\(\.cover\)\{justify-content:flex-start/);
+  assert.match(css, /\.lesson\.plan-mermaid-scene\{justify-content:center;padding-top:18px;padding-bottom:18px/);
   assert.match(css, /\.plan-mermaid-scene \.mermaid-layout\{height:254px/);
   assert.doesNotMatch(css, /view-transition-name:lesson-stage|hf-accent-new/);
   assert.doesNotMatch(css, /infinite/);
