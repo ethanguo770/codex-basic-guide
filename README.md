@@ -89,8 +89,15 @@ actions tied to the current ChatGPT user. Leave public content anonymous.
 
 - `npm run dev`: start local development
 - `npm run build`: verify the vinext build output
+- `npm run pages:build`: generate the static GitHub Pages artifact in `pages-dist/`
 - `npm test`: build the starter and verify its rendered loading skeleton
 - `npm run db:generate`: generate Drizzle migrations after schema changes
+
+## GitHub Pages
+
+Pushes to `main` run `.github/workflows/pages.yml`, which builds and deploys the
+site with GitHub's official Pages actions. For the first deployment, set
+**Settings → Pages → Build and deployment → Source** to **GitHub Actions**.
 
 ## Learn More
 
