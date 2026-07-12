@@ -51,7 +51,6 @@ test("covers every requested capability and keeps the editorial design accessibl
   assert.match(page, /它会交给你/);
   assert.match(page, /Codex小技巧/);
   assert.match(page, /PLAN 负责想清楚怎么做/);
-  assert.match(css, /\.plan-mermaid-scene \.statement h2\{font-family:"Microsoft YaHei",Arial,sans-serif/);
   assert.match(page, /流程图（Mermaid）负责让人一眼看懂/);
   assert.match(page, /一定要让 AI 多画图/);
   assert.match(page, /AI 输出 Plan \+ 流程图 → 人看图 Review/);
@@ -88,14 +87,11 @@ test("covers every requested capability and keeps the editorial design accessibl
   assert.match(page, /capability-cell/);
   assert.match(css, /capability-anatomy>div\.revealed/);
   assert.match(css, /reveal-block/);
-  assert.match(css, /\.plan-mermaid-scene\{justify-content:flex-start/);
-  assert.match(css, /\.plan-mermaid-scene \.mermaid-layout\{height:286px/);
-  assert.match(css, /\.plan-mermaid-scene\{gap:8px;padding-top:52px;padding-bottom:12px/);
-  assert.match(css, /grid-template-columns:minmax\(0,1\.5fr\) minmax\(300px,\.65fr\)/);
+  assert.match(page, /scene === 2[\s\S]*?compare-scene[\s\S]*?revealClass\(3, "comparison"\)[\s\S]*?compare-card native[\s\S]*?versus[\s\S]*?compare-card recommended[\s\S]*?revealClass\(4, "recommendation coral"\)/);
+  assert.doesNotMatch(page, /plan-mermaid-scene|mermaid-layout|flowStep|flowV1|flowV2/);
   assert.match(page, /AI 输出 01/);
   assert.match(page, /AI 输出 02/);
   assert.match(css, /grid-template-columns:1fr 55px 1\.12fr/);
-  assert.match(css, /flex:0 0 273px/);
   assert.doesNotMatch(css, /view-transition-name:lesson-stage|hf-accent-new/);
   assert.doesNotMatch(css, /infinite/);
   assert.match(design, /warm editorial|Claude-like/);
