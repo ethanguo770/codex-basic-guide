@@ -50,7 +50,8 @@ test("covers every requested capability and keeps the editorial design accessibl
   assert.match(page, /你只要告诉 AI/);
   assert.match(page, /它会交给你/);
   assert.match(page, /Codex小技巧/);
-  assert.match(page, /Plan 负责想清楚怎么做/);
+  assert.match(page, /PLAN 负责想清楚怎么做/);
+  assert.match(css, /\.plan-mermaid-scene \.statement h2\{font-family:"Microsoft YaHei",Arial,sans-serif/);
   assert.match(page, /流程图（Mermaid）负责让人一眼看懂/);
   assert.match(page, /一定要让 AI 多画图/);
   assert.match(page, /AI 输出 Plan \+ 流程图 → 人看图 Review/);
