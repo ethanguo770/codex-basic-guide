@@ -6,10 +6,10 @@ type Language = "zh" | "en";
 type Theme = "light" | "dark";
 
 const chapterTitles = {
-  zh: ["开场", "认识平台", "PLAN x 流程图", "UltraGoal", "Browser", "OMX CodeReview", "Debugger", "总结", "附录"],
-  en: ["Intro", "The platform", "PLAN x Flowchart", "UltraGoal", "Browser", "OMX CodeReview", "Debugger", "Summary", "Appendix"],
+  zh: ["开场", "认识平台", "PLAN x 流程图", "UltraGoal", "Browser", "OMX CodeReview", "Debugger", "真实案例", "总结", "附录"],
+  en: ["Intro", "The platform", "PLAN x Flowchart", "UltraGoal", "Browser", "OMX CodeReview", "Debugger", "Real case", "Summary", "Appendix"],
 } as const;
-const sceneMaxSteps = [2, 2, 4, 4, 5, 4, 4, 2, 3] as const;
+const sceneMaxSteps = [2, 2, 4, 4, 5, 4, 4, 4, 2, 3] as const;
 
 type CommandProps = { title: string; children: string; onCopy: (value: string) => void; language: Language };
 
@@ -332,15 +332,42 @@ export default function Home() {
         )}
 
         {scene === 7 && (
+          <article className={`${lessonClass} case-study-scene`}>
+            <div className="section-no">{t("06 · 这个页面就是案例", "06 · THIS PAGE IS THE CASE")}</div>
+            <div className="statement"><h2>{t("它不是虚构的 Demo，", "This is not a fictional demo,")}<br /><span>{t("而是五个技巧共同完成的真实项目。", "but a real project built with all five techniques.")}</span></h2><p>{t("最初的需求只是“做一个介绍 Codex 的 PPT”。经过持续规划、人工 Review、浏览器测试、安全审查和线上调试，最后才变成你正在看的交互页面。", "The original request was simply “make a Codex presentation.” Planning, human review, browser testing, security review, and production debugging turned it into the interactive page you are reading now.")}</p></div>
+            <div className={revealClass(1, "case-evolution")}>
+              <small>{t("真实需求如何一步步变化", "HOW THE REAL BRIEF EVOLVED")}</small>
+              <div>{(language === "zh" ? ["做一个 PPT", "动画更自然", "改成交互网页", "让小白看懂", "中英文 + 夜间模式", "发布到 GitHub Pages"] : ["Make a presentation", "Make motion feel natural", "Turn it into an interactive site", "Explain it for beginners", "Add bilingual + dark mode", "Publish to GitHub Pages"]).map((label, index) => <span key={label} className={revealStep >= Math.min(4, 1 + Math.floor(index / 2)) ? "active" : ""}><b>0{index + 1}</b>{label}</span>)}</div>
+            </div>
+            <div className={revealClass(2, "case-capabilities")}>
+              {(language === "zh" ? [
+                ["PLAN × Mermaid", "把零散意见重新整理成页面顺序和讲解流程。", "产物：可 Review 的章节结构"],
+                ["OMX UltraGoal", "持续完成设计、开发、动画、测试和发布。", "产物：从需求跑到线上交付"],
+                ["Browser", "检查滚轮、跨页、中英文、夜间模式和 125% 缩放。", "证据：页面与资源真实可用"],
+                ["OMX CodeReview", "扫描 31 个提交，检查私钥、Token、邮箱和依赖风险。", "结论：无密钥泄漏，留下加固建议"],
+                ["Debugger", "从 404 追到 Pages 发布源错误和 CI 锁文件差异。", "结果：修复后线上返回 200"]
+              ] : [
+                ["PLAN × Mermaid", "Turn scattered feedback into page order and a reviewable narrative flow.", "OUTPUT: A REVIEWABLE CHAPTER STRUCTURE"],
+                ["OMX UltraGoal", "Keep design, development, animation, testing, and publishing moving.", "OUTPUT: DELIVERY FROM BRIEF TO PRODUCTION"],
+                ["Browser", "Verify scrolling, transitions, language, dark mode, and 125% zoom.", "EVIDENCE: THE REAL PAGE AND ASSETS WORK"],
+                ["OMX CodeReview", "Scan 31 commits for keys, tokens, email exposure, and dependency risk.", "VERDICT: NO SECRET LEAK; HARDENING NOTES RECORDED"],
+                ["Debugger", "Trace a 404 to the Pages source and CI lockfile differences.", "RESULT: PRODUCTION RETURNS HTTP 200"]
+              ]).map(([name, action, evidence], index) => <div key={name} className={revealStep >= (index < 2 ? 2 : index < 4 ? 3 : 4) ? "revealed" : ""}><b>0{index + 1}</b><strong>{name}</strong><p>{action}</p><em>{evidence}</em></div>)}
+            </div>
+            <div className={revealClass(4, "case-proof")}><span className="error">404 · {t("发布成 README 页面", "README PUBLISHED AS JEKYLL")}</span><i>→</i><span>{t("切换到 GitHub Actions", "SWITCH TO GITHUB ACTIONS")}</span><i>→</i><b>200 · Codex小技巧</b></div>
+          </article>
+        )}
+
+        {scene === 8 && (
           <article className={`${lessonClass} summary-scene`}>
-            <div className="section-no">{t("06 · 现在你会选了", "06 · NOW YOU CAN CHOOSE")}</div>
+            <div className="section-no">{t("07 · 现在你会选了", "07 · NOW YOU CAN CHOOSE")}</div>
             <div className="summary-title"><h2>{t("五个小技巧，", "Five practical techniques,")}<br /><span>{t("组成一条完整的 AI 开发流程。", "one complete AI development workflow.")}</span></h2><p>{t("先让人看懂和确认，再让 AI 执行，最后用真实证据检查结果。", "First make the work understandable and reviewable, then let AI execute, and finally verify the result with real evidence.")}</p></div>
             <div className={revealClass(1, "summary-list")}>{(language === "zh" ? [["PLAN x 流程图（Mermaid）","计划太长，不容易发现 AI 理解错了哪里","最后得到：文字 Plan、多张配套流程图和人工确认后的规则"],["OMX UltraGoal","大项目跨很多阶段，容易中断或漏验收","最后得到：可恢复的执行进度，以及通过测试和 Review 的完整产物"],["Browser","测试网页和写飞书文档太重复","最后得到：完整自动化测试证据，以及已编写好的飞书云文档"],["OMX CodeReview","自己写的代码容易看漏问题","最后得到：问题位置、修改建议和是否合并的结论"],["Debugger","只看到了 Bug，却不知道真正原因","最后得到：复现方法、真正原因、修改和防复发测试"]] : [["PLAN x Flowchart (Mermaid)","Long plans hide where AI misunderstood the work","Result: a written Plan, matching diagrams, and human-approved rules"],["OMX UltraGoal","Long projects are easily interrupted or under-verified","Result: recoverable progress and a complete deliverable that passed tests and review"],["Browser","Web testing and Feishu documentation are repetitive","Result: full automation evidence and a completed Feishu document"],["OMX CodeReview","It is easy to miss problems in your own code","Result: issue locations, fix guidance, and a merge verdict"],["Debugger","You see the bug but do not know the true cause","Result: reproduction, root cause, fix, and regression test"]]).map(([name,why,deliverable],i)=><div key={name}><b>0{i+1}</b><span><strong>{name}</strong><small>{why}</small></span><p>{deliverable}</p></div>)}</div>
             <div className={revealClass(2, "closing")}><b>{t("给小白的一句话", "THE BEGINNER VERSION")}</b><span>{t("先让 AI 把系统讲明白，再让 UltraGoal 自动做；每一步都要求留下可以检查的证据。", "Ask AI to explain the system first, let UltraGoal execute second, and require checkable evidence at every step.")}</span></div>
           </article>
         )}
 
-        {scene === 8 && (
+        {scene === 9 && (
           <article className={`${lessonClass} appendix-scene`}>
             <div className="section-no">{t("附录 · OH MY CODEX", "APPENDIX · OH MY CODEX")}</div>
             <div className="statement"><h2>{t("Oh My Codex：", "Oh My Codex:")}<br /><span>{t("把零散的 AI 命令，变成可以持续运行的开发流程。", "turn isolated AI commands into durable development workflows.")}</span></h2><p>{t("它不是另一个 AI 模型，而是 Codex 的工作流与多智能体扩展：负责澄清需求、规划、长期执行、协作、Review 和质量检查。", "It is not another AI model. It extends Codex with workflows and multi-agent coordination for clarification, planning, durable execution, collaboration, review, and quality checks.")}</p></div>

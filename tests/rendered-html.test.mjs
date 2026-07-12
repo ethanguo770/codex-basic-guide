@@ -58,6 +58,11 @@ test("covers every requested capability and keeps the editorial design accessibl
   assert.match(page, /自动完成网页测试，也能自动编写飞书云文档/);
   assert.match(page, /请独立的 AI 审查组帮你挑问题/);
   assert.match(page, /先查清 Bug 为什么发生/);
+  assert.match(page, /这个页面就是案例/);
+  assert.match(page, /最初的需求只是“做一个介绍 Codex 的 PPT”/);
+  assert.match(page, /扫描 31 个提交/);
+  assert.match(page, /404 ·/);
+  assert.match(page, /切换到 GitHub Actions/);
   assert.match(page, /换会话仍能继续/);
   assert.match(page, /从失败任务重试/);
   assert.match(page, /自动跑完整测试/);
@@ -94,6 +99,8 @@ test("covers every requested capability and keeps the editorial design accessibl
   assert.match(css, /\[data-theme="dark"\]/);
   assert.match(css, /\.topbar-tools/);
   assert.match(css, /\.icon-control/);
+  assert.match(css, /\.case-study-scene/);
+  assert.match(css, /\.case-capabilities/);
   assert.match(css, /soft-cover/);
   assert.match(page, /capability-cell/);
   assert.match(css, /capability-anatomy>div\.revealed/);
