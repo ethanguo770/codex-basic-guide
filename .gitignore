@@ -41,5 +41,6 @@ next-env.d.ts
 /dist/
 /pages-dist/
 /.wrangler/
+/.omx/
 /outputs/
 /work/

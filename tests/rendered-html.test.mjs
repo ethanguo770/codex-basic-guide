@@ -27,12 +27,13 @@ test("server-renders the 3D asset-management Codex guide", async () => {
 });
 
 test("covers every requested capability and keeps the editorial design accessible", async () => {
-  const [page, layout, css, design, packageJson] = await Promise.all([
+  const [page, layout, css, design, packageJson, gitignore] = await Promise.all([
     readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/layout.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
     readFile(new URL("../DESIGN.md", import.meta.url), "utf8"),
     readFile(new URL("../package.json", import.meta.url), "utf8"),
+    readFile(new URL("../.gitignore", import.meta.url), "utf8"),
   ]);
 
   for (const required of [
@@ -50,9 +51,19 @@ test("covers every requested capability and keeps the editorial design accessibl
   assert.match(page, /你只要告诉 AI/);
   assert.match(page, /它会交给你/);
   assert.match(page, /Codex小技巧/);
+  assert.match(page, /@Browser 打开本地 3D 资产网站/);
+  assert.match(page, /@Chrome 打开这个已授权的飞书云文档链接/);
+  assert.match(page, /@UltraGoal 开发 3D 仿真资产管理网站/);
+  assert.match(page, /@CodeReview 检查 3D 资产上传与转换功能/);
+  assert.doesNotMatch(page, /开始之前 · 怎么调用|invocation-scene/);
   assert.match(page, /PLAN 负责想清楚怎么做/);
   assert.match(page, /流程图（Mermaid）负责让人一眼看懂/);
   assert.match(page, /一定要让 AI 多画图/);
+  assert.match(page, /function PlanFlowchart/);
+  assert.match(page, /<PlanFlowchart language=\{language\} \/>/);
+  assert.match(page, /说明原因/);
+  assert.match(page, /退回修改/);
+  assert.match(page, /id="plan-flow-arrow"/);
   assert.match(page, /AI 输出 Plan \+ 流程图 → 人看图 Review/);
   assert.match(page, /持续做到验收通过/);
   assert.match(page, /自动完成网页测试，也能自动编写飞书云文档/);
@@ -101,6 +112,15 @@ test("covers every requested capability and keeps the editorial design accessibl
   assert.match(css, /\.icon-control/);
   assert.match(css, /\.case-study-scene/);
   assert.match(css, /\.case-capabilities/);
+  assert.match(css, /\.plan-flowchart/);
+  assert.match(css, /\.flow-shapes \.decision/);
+  assert.match(css, /\.flow-return/);
+  assert.match(css, /marker-end:url\(#plan-flow-arrow\)/);
+  assert.match(css, /Desktop height fitting/);
+  assert.match(css, /max-height:760px/);
+  assert.match(css, /\.browser-sequence\{height:246px/);
+  assert.match(css, /scrollbar-width:none/);
+  assert.doesNotMatch(css, /\.invocation-scene|\.codex-composer|\.invoke-legend/);
   assert.match(css, /soft-cover/);
   assert.match(page, /capability-cell/);
   assert.match(css, /capability-anatomy>div\.revealed/);
@@ -116,5 +136,7 @@ test("covers every requested capability and keeps the editorial design accessibl
   assert.match(layout, /lang="zh-CN"/);
   assert.match(layout, /title: "Codex小技巧"/);
   assert.doesNotMatch(packageJson, /react-loading-skeleton/);
+  assert.match(gitignore, /^\/\.omx\/$/m);
+
   await assert.rejects(access(new URL("../app/_sites-preview/SkeletonPreview.tsx", import.meta.url)));
 });
