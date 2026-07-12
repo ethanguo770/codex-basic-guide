@@ -91,6 +91,10 @@ test("covers every requested capability and keeps the editorial design accessibl
   assert.match(css, /\.plan-mermaid-scene \.mermaid-layout\{height:286px/);
   assert.match(css, /\.plan-mermaid-scene\{gap:8px;padding-top:32px;padding-bottom:12px/);
   assert.match(css, /grid-template-columns:minmax\(0,1\.5fr\) minmax\(300px,\.65fr\)/);
+  assert.match(page, /AI 输出 01/);
+  assert.match(page, /AI 输出 02/);
+  assert.match(css, /grid-template-columns:1fr 55px 1\.12fr/);
+  assert.match(css, /flex:0 0 293px/);
   assert.doesNotMatch(css, /view-transition-name:lesson-stage|hf-accent-new/);
   assert.doesNotMatch(css, /infinite/);
   assert.match(design, /warm editorial|Claude-like/);

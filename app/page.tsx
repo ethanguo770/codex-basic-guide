@@ -208,20 +208,21 @@ export default function Home() {
             />
             <div className={revealClass(3, "mermaid-layout")}>
               <div className="mermaid-left">
-                <Command title="PLAN x 流程图示例" onCopy={copy}>{'$plan --direct "不要修改代码。先为 3D 资产上传、转换、预览、审核和发布制定开发 Plan；凡是流程、分支和模块关系都要输出流程图（Mermaid），标出格式校验、重复版本、转换失败、退回和权限分支。列出需要人确认的问题。"'}</Command>
+                <div className="plan-card-title"><span>AI 输出 01</span><h3>文字 Plan</h3></div>
+                <Command title="PLAN 案例" onCopy={copy}>{'$plan --direct "不要修改代码。先为 3D 资产上传、转换、预览、审核和发布制定开发 Plan；凡是流程、分支和模块关系都要输出流程图（Mermaid），标出格式校验、重复版本、转换失败、退回和权限分支。列出需要人确认的问题。"'}</Command>
                 <div className="iteration-steps" aria-label="PLAN 与流程图人工审阅过程">
                   {[["1","AI 阅读需求和代码","理解现状与限制"],["2","输出文字 Plan","列模块、顺序和测试"],["3","主动多画流程图","把步骤、分支和关系画出来"],["4","人看图 Review","指出失败、权限和退回遗漏"],["5","同步修改后开工","Plan 与图确认后再写代码"]].map(([n,t,d],i)=><div key={n} className={flowStep===i?"active":flowStep>i?"done":""}><b>{n}</b><span><strong>{t}</strong><small>{d}</small></span></div>)}
                 </div>
               </div>
               <div className="mermaid-right">
-                <div className="editor-tabs"><b className="active">文字 Plan</b><b className="active">流程图（Mermaid）</b><span>{flowStep>=4?"已同步定稿":"等待人工确认"}</span></div>
+                <div className="plan-card-title"><span>AI 输出 02</span><h3>流程图（Mermaid）</h3><em>{flowStep>=4?"已同步定稿":"等待人工确认"}</em></div>
                 <div className="plan-outline"><span><b>模块</b>上传、转换、预览、审核</span><span><b>顺序</b>先校验，再转换，最后发布</span><span><b>验收</b>正常与失败分支都要测试</span></div>
                 <pre>{flowStep>=4?flowV2:flowV1}</pre>
                 <div className={`simple-flow ${flowStep>=4?"complete":""}`}><span>上传</span><i>→</i><span className="diamond">校验</span><i>→</i><span>转换</span><i>→</i><span>预览</span><i>→</i><span>{flowStep>=4?"通过 / 退回":"发布"}</span></div>
                 {flowStep===3&&<div className="human-comment">人类批注：转换失败呢？版本重复呢？谁可以发布？</div>}
               </div>
             </div>
-            <div className={revealClass(5, "recommendation")}><b>让 AI 多画图</b><span>需求与代码 → AI 输出 Plan + 流程图 → 人看图 Review → AI 同步修改 → 确认后再写代码和测试。</span></div>
+            <div className={revealClass(5, "recommendation coral")}><b>让 AI 多画图</b><span>需求与代码 → AI 输出 Plan + 流程图 → 人看图 Review → AI 同步修改 → 确认后再写代码和测试。</span></div>
           </article>
         )}
 
