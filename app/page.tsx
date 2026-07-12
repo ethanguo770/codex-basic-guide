@@ -331,9 +331,8 @@ export default function Home() {
             <div className={revealClass(1, "omx-command-groups")}>
               {[["先想清楚",[["$deep-interview","通过提问把模糊需求问清楚"],["$ralplan","让多个角色共同检查并完善计划"]]],["自动执行",[["$autopilot","串起规划、执行、Review 和 QA 的完整闭环"],["$team","让多个智能体并行处理不同子任务"]]],["质量提升",[["$ultraqa","生成更刁钻的端到端场景并反复验证"],["$performance-goal","持续定位和优化性能问题"]]],["项目维护",[["$wiki","把项目知识保存成可搜索的长期文档"],["$doctor","检查 Oh My Codex 是否安装和运行正常"]]]].map(([group,items])=><section key={group as string}><h3>{group as string}</h3>{(items as string[][]).map(([command,description])=><div key={command}><code>{command}</code><span>{description}</span></div>)}</section>)}
             </div>
-            <div className={revealClass(2, "recommendation coral")}><b>新手建议</b><span>先从 PLAN x 流程图、UltraGoal 和 OMX CodeReview 开始；任务更复杂后，再尝试 Autopilot、Team 与 UltraQA。</span></div>
+            <div className={revealClass(2, "recommendation coral")}><b>新手建议</b><span>先从 PLAN x 流程图、UltraGoal 和 OMX CodeReview 开始；任务更复杂后，再尝试 Autopilot、Team 与 UltraQA。</span><button className={revealClass(3, "restart")} onClick={()=>go(0)}>从头再看一次 ↺</button></div>
             <div className={revealClass(3, "omx-intro")}><div><small>官方项目地址</small><a href="https://github.com/Yeachan-Heo/oh-my-codex" target="_blank" rel="noreferrer">github.com/Yeachan-Heo/oh-my-codex ↗</a></div><p><b>说明</b><span>本页链接采用 Oh My Codex 官方 GitHub 项目，便于继续查看安装方式、完整命令和更新说明。</span></p></div>
-            <button className={revealClass(3, "restart")} onClick={()=>go(0)}>从头再看一次 ↺</button>
           </article>
         )}
       </section>
