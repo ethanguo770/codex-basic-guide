@@ -1,8 +1,18 @@
-# vinext-starter
+# Codex 小技巧
 
-A clean full-stack starter running on
-[vinext](https://github.com/cloudflare/vinext), with optional Cloudflare D1 and
-Drizzle support.
+面向开发新手的交互式 Codex 指南：通过一个 3D 仿真资产管理网站案例，讲清
+PLAN × 流程图（Mermaid）、UltraGoal、Browser、OMX CodeReview 与 Debugger。
+
+## 🌐 在线演示
+
+**[打开 Codex 小技巧交互页面 →](https://ethanguo770.github.io/codex-basic-guide/)**
+
+页面支持中英文、明暗主题和滚轮逐步讲解。
+
+## 技术说明
+
+项目基于 [vinext](https://github.com/cloudflare/vinext)，保留可选的 Cloudflare
+D1 与 Drizzle 支持。
 
 ## Prerequisites
 
