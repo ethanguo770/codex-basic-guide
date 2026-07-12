@@ -3,7 +3,25 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 const chapters = ["开场", "认识平台", "PLAN x 流程图", "UltraGoal", "Browser", "OMX CodeReview", "Debugger", "总结", "附录"];
-const sceneMaxSteps = [2, 2, 4, 4, 5, 4, 4, 2, 3] as const;
+const sceneMaxSteps = [2, 2, 5, 4, 5, 4, 4, 2, 3] as const;
+
+const flowV1 = `flowchart LR
+  A[上传 3D 文件] --> B[生成预览]
+  B --> C[人工审核]
+  C --> D[发布资产]`;
+
+const flowV2 = `flowchart TD
+  A[上传 GLB / FBX] --> B{格式与大小合法?}
+  B -->|否| X[拒绝并说明原因]
+  B -->|是| C{版本是否重复?}
+  C -->|是| Y[提示覆盖或新建版本]
+  C -->|否| D[转换与生成缩略图]
+  D --> E{转换成功?}
+  E -->|否| R[重试 / 进入修复队列]
+  E -->|是| F[3D 在线预览]
+  F --> G{审核通过?}
+  G -->|否| H[退回修改]
+  G -->|是| I[发布到仿真资产库]`;
 
 type CommandProps = { title: string; children: string; onCopy: (value: string) => void };
 
@@ -124,6 +142,7 @@ export default function Home() {
   const maxReveal = sceneMaxSteps[scene];
   const progress = `${((scene + (revealStep + 1) / (maxReveal + 1)) / chapters.length) * 100}%`;
   const revealClass = (step: number, className = "") => `${className} reveal-block ${revealStep >= step ? "revealed" : ""}`;
+  const flowStep = scene === 2 ? (revealStep >= 5 ? 4 : revealStep >= 4 ? 3 : revealStep >= 3 ? 2 : revealStep >= 2 ? 1 : 0) : 0;
   const angle = scene === 4 ? (revealStep >= 4 ? 3 : revealStep >= 3 ? 1 : 0) : 0;
   const testStatus: "idle" | "running" | "passed" = scene === 4 ? (revealStep >= 4 ? "passed" : revealStep >= 3 ? "running" : "idle") : "idle";
 
@@ -176,23 +195,34 @@ export default function Home() {
         )}
 
         {scene === 2 && (
-          <article className={`${lessonClass} compare-scene`}>
+          <article className={`${lessonClass} mermaid-scene plan-mermaid-scene`}>
             <div className="section-no">01 · PLAN x 流程图（Mermaid）</div>
-            <div className="statement"><h2>Plan 先把步骤想清楚，<br /><span>流程图让人一眼看懂。</span></h2><p>一定要让 AI 多画图：文字 Plan 说明做什么，流程图展示顺序、分支和异常。人先看图找遗漏，AI 同步修改，确认后再写代码。</p></div>
+            <div className="statement"><h2>PLAN 负责想清楚怎么做，<br /><span>流程图（Mermaid）负责让人一眼看懂。</span></h2><p>一定要让 AI 多画图：出现流程、分支或模块关系时就同时输出图。人看图找遗漏，AI 同步修改 Plan，确认后再写代码。</p></div>
             <Capability
               className={revealClass(1)}
               revealStep={revealStep}
-              purpose="先输出可审阅的文字 Plan，再用流程图把步骤、分支和异常情况讲明白。"
+              purpose="先得到有顺序的开发计划，再用流程图把步骤、分支和异常情况讲明白。"
               when="功能涉及多个模块，文字计划不容易快速看懂，也担心 AI 理解错需求时。"
               input="需求、相关代码、不能违反的限制，以及最后怎样才算完成。"
               output="一份文字 Plan、一张配套流程图（Mermaid），以及需要人确认的问题。"
             />
-            <div className={revealClass(3, "comparison")}>
-              <div className="compare-card native"><div className="compare-title"><span>AI 输出 01</span><h3>文字 Plan</h3></div><p>先把要改的模块、先后顺序、限制和测试写清楚，让人确认 AI 是否真的理解了需求。</p><Command title="PLAN 案例" onCopy={copy}>{'$plan --direct "不要修改代码。先为 3D 资产上传、转换、预览、审核和发布制定开发 Plan；列出模块、顺序、限制、风险、测试和需要人确认的问题。"'}</Command><ul><li>拆清模块和先后顺序</li><li>列出限制、风险与验收标准</li><li>暂不改代码，先让人确认</li></ul><div className="fit">第一份产物：可审阅的文字 Plan</div></div>
-              <div className="versus">VS</div>
-              <div className="compare-card recommended"><div className="recommended-badge">本教程推荐</div><div className="compare-title"><span>AI 输出 02</span><h3>流程图（Mermaid）</h3></div><p>让 AI 把正常流程和失败分支都画出来。人看图发现遗漏，再让 AI 同步修改流程图与 Plan。</p><Command title="让 AI 多画图" onCopy={copy}>{"把刚才的 Plan 同时画成流程图（Mermaid），标出格式校验、重复版本、转换失败、审核退回和发布权限；等待我 Review 后再修改代码。"}</Command><ul><li>正常步骤和失败分支一起画</li><li>人看图补充权限、退回等遗漏</li><li>图与 Plan 一起确认后再写代码</li></ul><div className="fit strong">关键：先看图确认，再让 AI 开工</div></div>
+            <div className={revealClass(3, "mermaid-layout")}>
+              <div className="mermaid-left">
+                <div className="plan-card-title"><span>AI 输出 01</span><h3>文字 Plan</h3></div>
+                <Command title="PLAN 案例" onCopy={copy}>{'$plan --direct "不要修改代码。先为 3D 资产上传、转换、预览、审核和发布制定开发 Plan；凡是流程、分支和模块关系都要输出流程图（Mermaid），标出格式校验、重复版本、转换失败、退回和权限分支。列出需要人确认的问题。"'}</Command>
+                <div className="iteration-steps" aria-label="PLAN 与流程图人工审阅过程">
+                  {[["1","AI 阅读需求和代码","理解现状与限制"],["2","输出文字 Plan","列模块、顺序和测试"],["3","主动多画流程图","把步骤、分支和关系画出来"],["4","人看图 Review","指出失败、权限和退回遗漏"],["5","同步修改后开工","Plan 与图确认后再写代码"]].map(([n,t,d],i)=><div key={n} className={flowStep===i?"active":flowStep>i?"done":""}><b>{n}</b><span><strong>{t}</strong><small>{d}</small></span></div>)}
+                </div>
+              </div>
+              <div className="mermaid-right">
+                <div className="plan-card-title"><span>AI 输出 02</span><h3>流程图（Mermaid）</h3><em>{flowStep>=4?"已同步定稿":"等待人工确认"}</em></div>
+                <div className="plan-outline"><span><b>模块</b>上传、转换、预览、审核</span><span><b>顺序</b>先校验，再转换，最后发布</span><span><b>验收</b>正常与失败分支都要测试</span></div>
+                <pre>{flowStep>=4?flowV2:flowV1}</pre>
+                <div className={`simple-flow ${flowStep>=4?"complete":""}`}><span>上传</span><i>→</i><span className="diamond">校验</span><i>→</i><span>转换</span><i>→</i><span>预览</span><i>→</i><span>{flowStep>=4?"通过 / 退回":"发布"}</span></div>
+                {flowStep===3&&<div className="human-comment">人类批注：转换失败呢？版本重复呢？谁可以发布？</div>}
+              </div>
             </div>
-            <div className={revealClass(4, "recommendation coral")}><b>最佳实践</b><span>需求与代码 → AI 输出 Plan + 流程图 → 人看图 Review → AI 同步修改 → 确认后再写代码和测试。</span></div>
+            <div className={revealClass(5, "recommendation coral")}><b>让 AI 多画图</b><span>需求与代码 → AI 输出 Plan + 流程图 → 人看图 Review → AI 同步修改 → 确认后再写代码和测试。</span></div>
           </article>
         )}
 
