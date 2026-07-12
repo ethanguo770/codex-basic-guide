@@ -74,6 +74,14 @@ test("covers every requested capability and keeps the editorial design accessibl
   assert.match(page, /setTransitioning/);
   assert.match(page, /sceneMaxSteps/);
   assert.match(page, /setRevealStep/);
+  assert.match(page, /codex-tips-language/);
+  assert.match(page, /codex-tips-theme/);
+  assert.match(page, /document\.documentElement\.dataset\.theme/);
+  assert.match(page, /Switch to Chinese/);
+  assert.match(page, /Switch to dark mode/);
+  assert.match(page, /Learn the AI development loop through a 3D simulation asset platform/);
+  assert.match(page, /Ask AI to draw often/);
+  assert.match(page, /UltraGoal preserves objectives, progress, failures, and verification evidence/);
   assert.match(page, /滚轮逐步展开/);
   assert.match(page, /AUTOMATION STEPS · 随滚轮推进/);
   assert.doesNotMatch(page, /Mermaid 自动迭代|AUTOMATION STEPS · 自动推进/);
@@ -83,6 +91,9 @@ test("covers every requested capability and keeps the editorial design accessibl
   assert.doesNotMatch(page, /人类控制点|AI 会执行|可审计的 ledger|架构边界|最终质量门/);
   assert.doesNotMatch(page, /小游戏|VISUALIZE|\bVIS\b/);
   assert.match(css, /prefers-reduced-motion/);
+  assert.match(css, /\[data-theme="dark"\]/);
+  assert.match(css, /\.topbar-tools/);
+  assert.match(css, /\.icon-control/);
   assert.match(css, /soft-cover/);
   assert.match(page, /capability-cell/);
   assert.match(css, /capability-anatomy>div\.revealed/);
