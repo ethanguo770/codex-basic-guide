@@ -89,7 +89,8 @@ test("covers every requested capability and keeps the editorial design accessibl
   assert.match(css, /reveal-block/);
   assert.match(css, /\.plan-mermaid-scene\{justify-content:flex-start/);
   assert.match(css, /\.plan-mermaid-scene \.mermaid-layout\{height:286px/);
-  assert.match(css, /\.plan-mermaid-scene\{gap:10px;padding-top:24px;padding-bottom:10px/);
+  assert.match(css, /\.plan-mermaid-scene\{gap:8px;padding-top:32px;padding-bottom:12px/);
+  assert.match(css, /grid-template-columns:minmax\(0,1\.5fr\) minmax\(300px,\.65fr\)/);
   assert.doesNotMatch(css, /view-transition-name:lesson-stage|hf-accent-new/);
   assert.doesNotMatch(css, /infinite/);
   assert.match(design, /warm editorial|Claude-like/);
