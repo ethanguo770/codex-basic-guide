@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { normalizeWheelDelta, routeWheelInput, WHEEL_GESTURE_RELEASE_MS } from "../lib/wheel-routing.mjs";
 
 type Language = "zh" | "en";
 type Theme = "light" | "dark";
@@ -9,7 +10,7 @@ const chapterTitles = {
   zh: ["开场", "认识平台", "PLAN x 流程图", "UltraGoal", "Browser", "OMX CodeReview", "Debugger", "真实案例", "总结", "附录"],
   en: ["Intro", "The platform", "PLAN x Flowchart", "UltraGoal", "Browser", "OMX CodeReview", "Debugger", "Real case", "Summary", "Appendix"],
 } as const;
-const sceneMaxSteps = [2, 2, 4, 4, 5, 4, 4, 4, 2, 3] as const;
+const sceneMaxSteps = [2, 2, 5, 5, 5, 5, 5, 5, 5, 3] as const;
 
 type CommandProps = { title: string; children: string; onCopy: (value: string) => void; language: Language };
 
@@ -72,24 +73,45 @@ function PlanFlowchart({ language }: { language: Language }) {
   );
 }
 
-type CapabilityProps = {
+type BeginnerPathProps = {
   className?: string;
   revealStep: number;
-  purpose: string;
-  when: string;
-  input: string;
-  output: string;
   language: Language;
+  problem: string;
+  choose: string;
+  input: string;
+  action: string;
+  result: string;
 };
 
-function Capability({ className = "", revealStep, purpose, when, input, output, language }: CapabilityProps) {
-  const cellClass = (step: number) => `capability-cell ${revealStep >= step ? "revealed" : ""}`;
+function BeginnerPath({ className = "", revealStep, language, problem, choose, input, action, result }: BeginnerPathProps) {
+  const items = language === "zh"
+    ? [
+        [1, "01 · 遇到的问题", "?", problem],
+        [2, "02 · 为什么选它", "✓", choose],
+        [3, "03 · 你告诉 AI", "→", input],
+        [4, "04 · AI 会怎么做", "AI", action],
+        [5, "05 · 你会得到", "★", result],
+      ] as const
+    : [
+        [1, "01 · THE PROBLEM", "?", problem],
+        [2, "02 · WHY CHOOSE IT", "✓", choose],
+        [3, "03 · YOU TELL AI", "→", input],
+        [4, "04 · AI WILL", "AI", action],
+        [5, "05 · YOU GET", "★", result],
+      ] as const;
+  const stepClass = (step: number, base: string) => `${base} ${revealStep >= step ? "revealed" : ""} ${revealStep === step ? "is-current" : revealStep > step ? "is-past" : ""}`;
+  const current = items.find(([step]) => step === revealStep);
+
   return (
-    <div className={`capability-anatomy ${className}`}>
-      <div className={cellClass(1)}><small>{language === "zh" ? "01 · 它能帮你做什么" : "01 · WHAT IT DOES"}</small><strong>{purpose}</strong></div>
-      <div className={cellClass(1)}><small>{language === "zh" ? "02 · 什么时候会用到" : "02 · WHEN TO USE IT"}</small><span>{when}</span></div>
-      <div className={cellClass(2)}><small>{language === "zh" ? "03 · 你只要告诉 AI" : "03 · WHAT YOU PROVIDE"}</small><span>{input}</span></div>
-      <div className={cellClass(2)}><small>{language === "zh" ? "04 · 它会交给你" : "04 · WHAT YOU GET"}</small><span>{output}</span></div>
+    <div className={`beginner-path ${className}`} aria-label={language === "zh" ? "从问题到结果的命令理解路径" : "A beginner path from problem to result"}>
+      <ol className="learning-progress">
+        {items.map(([step, label]) => <li className={stepClass(step, "learning-progress-step")} aria-current={revealStep === step ? "step" : undefined} key={label}><b>{step}</b><span>{label.replace(/^\d+ · /, "")}</span></li>)}
+      </ol>
+      <div className="learning-stage">
+        {items.map(([step, label, mark, text]) => <article className={stepClass(step, "learning-panel")} aria-hidden={revealStep !== step} key={label}><b aria-hidden="true">{mark}</b><span><small>{label}</small><strong>{text}</strong></span></article>)}
+      </div>
+      <span className="sr-only" aria-live="polite">{current ? `${current[1]}: ${current[3]}` : ""}</span>
     </div>
   );
 }
@@ -104,7 +126,9 @@ export default function Home() {
   const [transitionScene, setTransitionScene] = useState(0);
   const [revealStep, setRevealStep] = useState(0);
   const [copied, setCopied] = useState(false);
-  const wheelLock = useRef(false);
+  const wheelGestureActive = useRef(false);
+  const wheelGestureTimer = useRef<number | null>(null);
+  const wheelAccumulator = useRef(0);
   const transitionLock = useRef(false);
   const transitionTimers = useRef<number[]>([]);
   const chapters = chapterTitles[language];
@@ -185,14 +209,38 @@ export default function Home() {
 
   useEffect(() => {
     const onWheel = (event: WheelEvent) => {
-      if ((event.target as HTMLElement).closest(".scrollable")) return;
-      if (wheelLock.current || Math.abs(event.deltaY) < 30) return;
-      wheelLock.current = true;
-      advance(event.deltaY > 0 ? 1 : -1);
-      window.setTimeout(() => { wheelLock.current = false; }, 420);
+      const delta = normalizeWheelDelta(event.deltaY, event.deltaMode, window.innerHeight);
+      const target = event.target instanceof Element ? event.target : null;
+      const lesson = target?.closest<HTMLElement>(".lesson");
+      const route = routeWheelInput({
+        delta,
+        gestureActive: wheelGestureActive.current,
+        accumulator: wheelAccumulator.current,
+        lesson: lesson ? {
+          overflowY: window.getComputedStyle(lesson).overflowY,
+          scrollTop: lesson.scrollTop,
+          scrollHeight: lesson.scrollHeight,
+          clientHeight: lesson.clientHeight,
+        } : null,
+      });
+
+      wheelGestureActive.current = route.gestureActive;
+      wheelAccumulator.current = route.accumulator;
+      if (wheelGestureTimer.current !== null) window.clearTimeout(wheelGestureTimer.current);
+      wheelGestureTimer.current = window.setTimeout(() => {
+        wheelGestureActive.current = false;
+        wheelAccumulator.current = 0;
+        wheelGestureTimer.current = null;
+      }, WHEEL_GESTURE_RELEASE_MS);
+
+      if (route.action === "advance-next") advance(1);
+      if (route.action === "advance-previous") advance(-1);
     };
     window.addEventListener("wheel", onWheel, { passive: true });
-    return () => window.removeEventListener("wheel", onWheel);
+    return () => {
+      window.removeEventListener("wheel", onWheel);
+      if (wheelGestureTimer.current !== null) window.clearTimeout(wheelGestureTimer.current);
+    };
   }, [advance]);
 
   const copy = async (text: string) => {
@@ -205,13 +253,31 @@ export default function Home() {
     transitionTimers.current.forEach(window.clearTimeout);
   }, []);
 
-  const lessonClass = direction > 0 ? "lesson lesson-next" : "lesson lesson-prev";
+  const lessonClass = `${direction > 0 ? "lesson lesson-next" : "lesson lesson-prev"} focus-step-${revealStep}`;
   const assetInfo = ["PUMP-204", t("离心泵总成", "Centrifugal pump assembly"), "v3.2", t("待审核", "Pending review")];
   const maxReveal = sceneMaxSteps[scene];
   const progress = `${((scene + (revealStep + 1) / (maxReveal + 1)) / chapters.length) * 100}%`;
-  const revealClass = (step: number, className = "") => `${className} reveal-block ${revealStep >= step ? "revealed" : ""}`;
-  const angle = scene === 4 ? (revealStep >= 4 ? 3 : revealStep >= 3 ? 1 : 0) : 0;
-  const testStatus: "idle" | "running" | "passed" = scene === 4 ? (revealStep >= 4 ? "passed" : revealStep >= 3 ? "running" : "idle") : "idle";
+  const phaseLabels = language === "zh"
+    ? ["先理解作用", "看见问题", "判断是否适合", "准备输入", "观察 AI 动作", "确认产物"]
+    : ["Understand", "See the problem", "Decide whether it fits", "Prepare the input", "Watch AI work", "Confirm the result"];
+  const phaseLabel = phaseLabels[Math.min(revealStep, phaseLabels.length - 1)];
+  const transitionKind = ["editorial", "editorial", "compare", "compare", "action", "compare", "action", "editorial", "editorial", "editorial"][transitionScene];
+  const revealClass = (step: number, className = "", activeUntil = step) => `${className} reveal-block ${revealStep >= step ? "revealed" : ""} ${revealStep >= step && revealStep <= activeUntil ? "is-current" : revealStep > activeUntil ? "is-past" : ""}`;
+  const angle = scene === 4 && revealStep >= 4 ? 3 : 0;
+  const testStatus: "idle" | "passed" = scene === 4 && revealStep >= 4 ? "passed" : "idle";
+  const capabilityGuide = language === "zh" ? [
+    { command: "PLAN x 流程图", storyProblem: "意见越来越多，页面顺序说不清楚", storyAction: "把需求整理成章节，并画出讲解流程让人 Review", storyResult: "得到可确认的页面结构", handoff: "把确认后的结构交给 UltraGoal 持续实现", choiceProblem: "还不知道应该怎么做", choiceResult: "先得到可 Review 的计划和图" },
+    { command: "OMX UltraGoal", storyProblem: "工作扩展到设计、开发、动画、测试和发布", storyAction: "保存任务和进度，失败后继续，直到检查通过", storyResult: "项目持续推进而不丢任务", handoff: "把运行中的页面交给 Browser 做真实验证", choiceProblem: "任务很大，要持续做到完成", choiceResult: "保存进度并持续通过验收" },
+    { command: "Browser", storyProblem: "滚轮、中英文、夜间模式和不同分辨率需要真实验证", storyAction: "自动操作运行中的网页并检查每条用户路径", storyResult: "留下页面状态和测试证据", handoff: "把代码和测试证据交给 CodeReview 判断能否发布", choiceProblem: "要操作网页、测试页面或写飞书", choiceResult: "让 AI 直接完成网页操作" },
+    { command: "OMX CodeReview", storyProblem: "代码准备发布，担心安全问题和回归", storyAction: "独立检查代码、测试和整体设计", storyResult: "得到风险清单与合并结论", handoff: "发布后如果出现异常，交给 Debugger 追查原因", choiceProblem: "代码准备合并，担心遗漏问题", choiceResult: "得到风险与合并结论" },
+    { command: "Debugger", storyProblem: "GitHub Pages 上线后显示 404", storyAction: "复现问题，追到发布配置，再验证修复", storyResult: "线上从 404 恢复为 200", handoff: "整套网站通过验证并完成交付", choiceProblem: "已经出现 Bug，但原因不清楚", choiceResult: "找到根因并用测试证明" },
+  ] : [
+    { command: "PLAN x Flowchart", storyProblem: "Feedback multiplied and the page order became unclear", storyAction: "Organize the brief into chapters and draw the teaching flow for human review", storyResult: "A page structure people could approve", handoff: "Pass the approved structure to UltraGoal for sustained implementation", choiceProblem: "I do not yet know how to approach the work", choiceResult: "Get a reviewable plan and diagram first" },
+    { command: "OMX UltraGoal", storyProblem: "The work expanded into design, code, motion, testing, and publishing", storyAction: "Persist tasks and progress, recover from failures, and continue until checks pass", storyResult: "The project kept moving without lost work", handoff: "Pass the running site to Browser for real verification", choiceProblem: "The project is large and must continue until done", choiceResult: "Persist progress and keep going through acceptance" },
+    { command: "Browser", storyProblem: "Wheel control, language, theme, and viewport behavior needed real verification", storyAction: "Operate the running site and check each user journey automatically", storyResult: "Page-state and test evidence", handoff: "Pass code and test evidence to CodeReview for the publish decision", choiceProblem: "I need to operate or test a website, or write Feishu docs", choiceResult: "Let AI complete the browser work directly" },
+    { command: "OMX CodeReview", storyProblem: "The repository was ready to publish, but security and regressions were uncertain", storyAction: "Independently inspect code, tests, and overall design", storyResult: "A risk list and merge verdict", handoff: "If production fails after launch, hand it to Debugger for root-cause analysis", choiceProblem: "The code is ready to merge, but problems may be hidden", choiceResult: "Get risks and a merge verdict" },
+    { command: "Debugger", storyProblem: "GitHub Pages returned 404 after launch", storyAction: "Reproduce the failure, trace the publishing configuration, and verify the fix", storyResult: "Production recovered from 404 to 200", handoff: "The site is verified and delivery is complete", choiceProblem: "A bug exists, but the cause is unknown", choiceResult: "Find the root cause and prove it with a test" },
+  ];
 
   return (
     <main className="guide">
@@ -219,18 +285,19 @@ export default function Home() {
       <header className="topbar">
         <button className="wordmark" onClick={() => scene === 0 ? setRevealStep(0) : go(0, 0)}><b>C</b><span>{t("Codex小技巧", "Codex Tips")}</span></button>
         <div className="topbar-tools">
-          <span>{t("滚轮逐步展开", "Scroll to reveal")} · {revealStep + 1} / {maxReveal + 1}</span>
+          <span>{t("当前", "Now")}: {phaseLabel} · {revealStep + 1} / {maxReveal + 1}</span>
           <button className="icon-control language-control" onClick={() => setLanguage(current => current === "zh" ? "en" : "zh")} aria-label={t("切换到英文", "Switch to Chinese")} title={t("切换到英文", "Switch to Chinese")}><b>{language === "zh" ? "EN" : "中"}</b></button>
           <button className="icon-control theme-control" onClick={() => setTheme(current => current === "light" ? "dark" : "light")} aria-label={theme === "light" ? t("切换到夜间模式", "Switch to dark mode") : t("切换到日间模式", "Switch to light mode")} title={theme === "light" ? t("切换到夜间模式", "Switch to dark mode") : t("切换到日间模式", "Switch to light mode")}><span aria-hidden="true">{theme === "light" ? "☾" : "☀"}</span></button>
         </div>
+        <span className="sr-only" aria-live="polite">{chapters[scene]} · {phaseLabel} · {revealStep + 1} / {maxReveal + 1}</span>
       </header>
 
       <nav className="chapter-rail" aria-label={t("章节导航", "Chapter navigation")}>
-        {chapters.map((title, index) => <button key={title} className={index === scene ? "active" : index < scene ? "done" : ""} onClick={() => go(index, 0)}><b>{index + 1}</b><span>{title}</span></button>)}
+        {chapters.map((title, index) => <button key={title} className={index === scene ? "active" : index < scene ? "done" : ""} aria-current={index === scene ? "page" : undefined} onClick={() => go(index, 0)}><b>{index + 1}</b><span>{title}</span></button>)}
       </nav>
 
-      <section className="stage" aria-live="polite">
-        {transitioning && <div className={`soft-wipe ${direction > 0 ? "forward" : "backward"}`} aria-hidden="true"><i /><i /><i /><b>{chapters[transitionScene]}</b></div>}
+      <section className="stage">
+        {transitioning && <div className={`soft-wipe ${transitionKind} ${direction > 0 ? "forward" : "backward"}`} aria-hidden="true"><i /><i /><i /><b>{chapters[transitionScene]}</b></div>}
 
         {scene === 0 && (
           <article className={`${lessonClass} cover`}>
@@ -269,43 +336,45 @@ export default function Home() {
           <article className={`${lessonClass} compare-scene`}>
             <div className="section-no">{t("01 · PLAN x 流程图（Mermaid）", "01 · PLAN x FLOWCHART (MERMAID)")}</div>
             <div className="statement"><h2>{t("PLAN 负责想清楚怎么做，", "PLAN works out what to do,")}<br /><span>{t("流程图（Mermaid）负责让人一眼看懂。", "a flowchart (Mermaid) makes it instantly understandable.")}</span></h2><p>{t("一定要让 AI 多画图：文字 Plan 说明要做什么，流程图展示顺序、分支和异常。人先看图找遗漏，AI 同步修改，确认后再写代码。", "Ask AI to draw often: the written Plan says what to build, while diagrams expose sequence, branches, and failures. Humans spot gaps in the picture, AI updates both, and coding starts only after approval.")}</p></div>
-            <Capability
+            <BeginnerPath
               language={language}
-              className={revealClass(1)}
+              className={revealClass(1, "", 5)}
               revealStep={revealStep}
-              purpose={t("先得到有顺序的开发计划，再用流程图把步骤、分支和异常情况讲明白。", "Create an ordered development plan, then use a flowchart to explain steps, branches, and failure paths.")}
-              when={t("功能涉及多个模块，文字计划不容易快速看懂，也担心 AI 理解错需求时。", "Use it when a feature spans multiple modules, a text plan is hard to scan, or AI may have misunderstood the requirement.")}
+              problem={t("功能跨很多模块，文字计划越写越长，很难发现 AI 哪里理解错了。", "The feature spans many modules, and a long text plan hides where AI misunderstood the work.")}
+              choose={t("需求里出现流程、分支或异常情况时，就让 PLAN 同时输出流程图。", "Choose PLAN with diagrams whenever the requirement contains a flow, branch, or failure path.")}
               input={t("需求、相关代码、不能违反的限制，以及最后怎样才算完成。", "Provide the requirement, relevant code, hard constraints, and the definition of done.")}
-              output={t("一份文字 Plan、一张配套流程图（Mermaid），以及需要人确认的问题。", "You get a written Plan, a matching Mermaid flowchart, and the questions that need human confirmation.")}
+              action={t("先列出开发顺序，再把正常流程、失败分支和模块关系画出来。", "AI orders the work, then draws the happy path, failure branches, and module relationships.")}
+              result={t("一份可以逐条审阅的 Plan、一张一眼看懂的图，以及需要人确认的问题。", "You get a reviewable Plan, an instantly readable diagram, and the questions that need human confirmation.")}
             />
-            <div className={revealClass(3, "comparison")}>
+            <div className={revealClass(4, "comparison")}>
               <div className="compare-card native"><div className="compare-title"><span>{t("AI 输出 01", "AI OUTPUT 01")}</span><h3>{t("文字 Plan", "Written Plan")}</h3></div><p>{t("先把模块、顺序、限制和测试写清楚，让人确认 AI 是否真正理解了需求。", "Clarify modules, order, constraints, and tests so a human can verify that AI understood the requirement.")}</p><Command language={language} title={t("PLAN 案例", "PLAN EXAMPLE")} onCopy={copy}>{t('$plan --direct "不要修改代码。先为 3D 资产上传、转换、预览、审核和发布制定开发 Plan；列出模块、顺序、限制、风险、测试和需要人确认的问题。"', '$plan --direct "Do not modify code. First create a development Plan for 3D asset upload, conversion, preview, review, and publishing. List modules, order, constraints, risks, tests, and questions requiring human confirmation."')}</Command><ul><li>{t("拆清模块和先后顺序", "Separate modules and sequence")}</li><li>{t("列出限制、风险与验收标准", "List constraints, risks, and acceptance criteria")}</li><li>{t("暂不改代码，先让人确认", "Do not code yet; ask for human approval")}</li></ul><div className="fit">{t("第一份产物：可审阅的文字 Plan", "FIRST OUTPUT: A REVIEWABLE WRITTEN PLAN")}</div></div>
               <div className="versus">VS</div>
               <div className="compare-card recommended"><div className="recommended-badge">{t("本教程推荐", "RECOMMENDED")}</div><div className="compare-title"><span>{t("AI 输出 02", "AI OUTPUT 02")}</span><h3>{t("流程图（Mermaid）", "Flowchart (Mermaid)")}</h3></div><p>{t("让 AI 把正常流程和失败分支都画出来。人看图发现遗漏，再同步修改流程图与 Plan。", "Ask AI to draw both the happy path and failure branches. Humans find omissions in the diagram, then AI updates the diagram and Plan together.")}</p><PlanFlowchart language={language} /><div className="fit strong">{t("关键：先看图确认，再让 AI 开工", "KEY: REVIEW THE DIAGRAM BEFORE AI STARTS")}</div></div>
             </div>
-            <div className={revealClass(4, "recommendation coral")}><b>{t("让 AI 多画图", "ASK AI TO DRAW MORE")}</b><span>{t("需求与代码 → AI 输出 Plan + 流程图 → 人看图 Review → AI 同步修改 → 确认后再写代码和测试。", "Requirement + code → AI outputs Plan + flowchart → human reviews the diagram → AI updates both → coding and tests begin after approval.")}</span></div>
+            <div className={revealClass(5, "recommendation coral")}><b>{t("让 AI 多画图", "ASK AI TO DRAW MORE")}</b><span>{t("需求与代码 → AI 输出 Plan + 流程图 → 人看图 Review → AI 同步修改 → 确认后再写代码和测试。", "Requirement + code → AI outputs Plan + flowchart → human reviews the diagram → AI updates both → coding and tests begin after approval.")}</span></div>
           </article>
         )}
 
         {scene === 3 && (
           <article className={`${lessonClass} compare-scene`}>
             <div className="section-no">02 · GOAL VS OMX ULTRAGOAL</div>
-            <div className="statement"><h2>{t("Goal 盯住一个任务，", "Goal keeps one task on track,")}<br /><span>{t("UltraGoal 把一个大项目持续做到验收通过。", "UltraGoal keeps a whole project moving until it passes acceptance.")}</span></h2><p>{t("它不只是“拆任务”：进度会保存在项目里；中断后可以继续，失败后可以重试，检查不通过就不会假装已经完成。", "It does more than split work: progress is stored in the repository, interrupted work resumes, failed tasks retry, and incomplete checks cannot be reported as done.")}</p></div>
-            <Capability
+            <div className="statement"><h2>{t("Goal 盯住一个任务，", "Goal keeps one task on track,")}<br /><span>{t("UltraGoal 把一个大项目持续做到验收通过。", "UltraGoal keeps a whole project moving until it passes acceptance.")}</span></h2><p>{t("它不只是“拆任务”：进度会保存在项目里，换会话仍能继续，也能从失败任务重试；检查不通过就不会假装已经完成。", "It does more than split work: progress is stored in the repository, survives across tasks, resumes from failed work, and cannot be reported done before checks pass.")}</p></div>
+            <BeginnerPath
               language={language}
-              className={revealClass(1)}
+              className={revealClass(1, "", 5)}
               revealStep={revealStep}
-              purpose={t("Goal 完成一个明确任务；UltraGoal 会自动拆解并持续推进整个项目，直到真正通过验收。", "Goal completes one clear task. UltraGoal decomposes and advances an entire project until acceptance truly passes.")}
-              when={t("任务横跨设计、开发、测试、Review 或性能排查，今天做不完、明天还要继续时。", "Use it when work spans design, development, testing, review, or performance analysis and must continue across sessions.")}
+              problem={t("项目要经过设计、开发、测试和 Review，一次对话做不完，也容易漏掉验收。", "The project spans design, development, testing, and review; one task cannot finish it and acceptance is easy to miss.")}
+              choose={t("小功能用 Goal；需要跨阶段持续推进、失败后继续做，就选 UltraGoal。", "Use Goal for one small feature. Choose UltraGoal when work must continue across stages and recover from failures.")}
               input={t("最终目标、不能触碰的边界、怎样才算完成，以及必须通过哪些检查。", "Provide the final objective, hard boundaries, definition of done, and required quality gates.")}
-              output={t("保存下来的任务与进度、每一步的结果、失败记录，以及通过测试和 Review 的最终产物。", "You get durable tasks and progress, results for every step, failure records, and a final deliverable that passed tests and review.")}
+              action={t("把大目标拆成可恢复的任务，保存进度，从失败任务重试，并自动跑完整测试和 Review。", "AI creates recoverable tasks, saves progress, retries failed work, then automatically runs the complete test and review gates.")}
+              result={t("一个真正交付的项目，以及可以检查的进度、失败记录、测试和 Review 证据。", "You get a shipped project plus checkable progress, failure records, tests, and review evidence.")}
             />
-            <div className={revealClass(3, "comparison")}>
+            <div className={revealClass(4, "comparison")}>
               <div className="compare-card native"><div className="compare-title"><span>{t("Codex 原生", "NATIVE CODEX")}</span><h3>Goal</h3></div><p>{t("像一张验收目标卡。适合范围清楚、步骤少、当前线程可以完成的任务。", "Think of it as an acceptance card: ideal for scoped work with few steps that one task can finish.")}</p><Command language={language} title={t("平台里的用法", "HOW TO USE IT")} onCopy={copy}>{t("创建 Goal：为资产列表增加标签筛选，并用浏览器测试证明 URL、筛选结果和空状态正确。", "Create a Goal: add tag filtering to the asset list and use browser tests to prove the URL, filtered results, and empty state are correct.")}</Command><ul><li>{t("一个目标", "One objective")}</li><li>{t("一个成功标准", "One success criterion")}</li><li>{t("由当前线程持续推进", "Advanced by the current task")}</li></ul><div className="fit">{t("适合：标签筛选、单个 Bug、小功能", "BEST FOR: FILTERS, ONE BUG, SMALL FEATURES")}</div></div>
               <div className="versus">VS</div>
-              <div className="compare-card recommended"><div className="recommended-badge">{t("本教程推荐", "RECOMMENDED")}</div><div className="compare-title"><span>Oh My Codex</span><h3>UltraGoal</h3></div><p>{t("像一位会记住全部进度的项目负责人：自己安排下一步，遇到失败留下记录，修好后继续，最终用测试和独立 Review 把关。", "It acts like a project lead with durable memory: it chooses the next step, records failures, resumes after fixes, and uses tests plus independent review as quality gates.")}</p><Command language={language} title={t("完整项目案例", "FULL PROJECT EXAMPLE")} onCopy={copy}>{t("@UltraGoal 开发 3D 仿真资产管理网站：完成页面设计、资产接口、上传转换、3D 预览、版本审核、飞书文档、浏览器自动化测试和加载速度排查；所有测试与 OMX CodeReview 通过后才算完成。", "@UltraGoal Build a 3D simulation asset platform with UI design, asset APIs, upload and conversion, 3D preview, version review, Feishu documentation, automated browser tests, and load-performance analysis. Finish only after all tests and OMX CodeReview pass.")}</Command><ul><li>{t("进度保存在项目里，换会话仍能继续", "Progress stays in the repository and survives new sessions")}</li><li>{t("失败会留下原因，可以从失败任务重试", "Failures retain causes and can be retried")}</li><li>{t("测试、OMX CodeReview 和整体设计检查全部通过才结束", "Tests, OMX CodeReview, and design checks must all pass")}</li></ul><div className="fit strong">{t("适合：完整平台、较长任务、性能排查", "BEST FOR: FULL PRODUCTS, LONG TASKS, PERFORMANCE WORK")}</div></div>
+              <div className="compare-card recommended"><div className="recommended-badge">{t("本教程推荐", "RECOMMENDED")}</div><div className="compare-title"><span>Oh My Codex</span><h3>UltraGoal</h3></div><p>{t("像一位会记住全部进度的项目负责人：自己安排下一步，遇到失败留下记录，修好后继续，最终用测试和独立 Review 把关。", "It acts like a project lead with durable memory: it chooses the next step, records failures, resumes after fixes, and uses tests plus independent review as quality gates.")}</p><Command language={language} title={t("完整项目案例", "FULL PROJECT EXAMPLE")} onCopy={copy}>{t("@UltraGoal 开发 3D 仿真资产管理网站：完成页面设计、资产接口、上传转换、3D 预览、版本审核、飞书文档、浏览器自动化测试和加载速度排查；所有测试与 OMX CodeReview 通过后才算完成。", "@UltraGoal Build a 3D simulation asset platform with UI design, asset APIs, upload and conversion, 3D preview, version review, Feishu documentation, automated browser tests, and load-performance analysis. Finish only after all tests and OMX CodeReview pass.")}</Command><div className="ultragoal-loop" role="img" aria-label={t("UltraGoal 从目标拆解、保存进度、失败重试到测试和独立审查的持续执行闭环", "UltraGoal execution loop from decomposition and saved progress through failure recovery, tests, and independent review")}><span>{t("目标", "Goal")}</span><i>→</i><span>{t("拆解", "Split")}</span><i>→</i><span>{t("保存进度", "Save")}</span><i>→</i><span className="retry">{t("失败留证 ↺", "Record failure ↺")}</span><i>→</i><span>{t("测试", "Test")}</span><i>→</i><span>{t("独立 Review", "Independent review")}</span><i>→</i><b>{t("完成", "Done")}</b></div><div className="fit strong">{t("适合：完整平台、较长任务、性能排查", "BEST FOR: FULL PRODUCTS, LONG TASKS, PERFORMANCE WORK")}</div></div>
             </div>
-            <div className={revealClass(4, "recommendation coral")}><b>{t("真正强的地方", "WHY IT IS POWERFUL")}</b><span>{t("UltraGoal 把目标、进度、失败和验证结果都保存下来；执行中发现新问题，还能根据证据调整后续任务。它追求的不是“AI 跑了很久”，而是“项目真的交付并通过检查”。", "UltraGoal preserves objectives, progress, failures, and verification evidence. When execution reveals new issues, it updates later work based on that evidence. The goal is not “AI ran for a long time”; it is “the project shipped and passed its checks.”")}</span></div>
+            <div className={revealClass(5, "recommendation coral")}><b>{t("真正强的地方", "WHY IT IS POWERFUL")}</b><span>{t("UltraGoal 把目标、进度、失败和验证结果都保存下来；执行中发现新问题，还能根据证据调整后续任务。它追求的不是“AI 跑了很久”，而是“项目真的交付并通过检查”。", "UltraGoal preserves objectives, progress, failures, and verification evidence. When execution reveals new issues, it updates later work based on that evidence. The goal is not “AI ran for a long time”; it is “the project shipped and passed its checks.”")}</span></div>
           </article>
         )}
 
@@ -313,17 +382,18 @@ export default function Home() {
           <article className={`${lessonClass} browser-scene`}>
             <div className="section-no">03 · BROWSER PLUGIN</div>
             <div className="statement"><h2>{t("Browser 插件：", "Browser plugin:")}<br /><span>{t("自动完成网页测试，也能自动编写飞书云文档。", "fully automate web tests and write Feishu cloud documents.")}</span></h2><p>{t("给它网址、步骤和正确结果，它可以从头跑完整测试并留下证据；飞书文档在网页端授权后，把链接复制到 Codex Chrome 插件，它就能进入指定文档继续操作。", "Give it a URL, steps, and expected results to run an end-to-end test with evidence. After authorizing a Feishu document in the web app, paste its link into the Codex Chrome plugin and AI can continue working inside that exact document.")}</p></div>
-            <Capability
+            <BeginnerPath
               language={language}
-              className={revealClass(1)}
+              className={revealClass(1, "", 5)}
               revealStep={revealStep}
-              purpose={t("替你完成两类重复工作：全流程网页自动化测试，以及打开飞书编写云文档。", "Automate two repetitive jobs: full web user-flow testing and writing cloud documents directly in Feishu.")}
-              when={t("需要完整验证一条用户流程，或者要把测试和项目结果正式整理进飞书时。", "Use it to validate a complete user journey or turn test and project results into a polished Feishu document.")}
+              problem={t("网页测试要反复点击、输入和截图，测试结果还要重新整理进飞书文档。", "Web testing repeats clicks, typing, and screenshots, then the results still need to be rewritten into Feishu.")}
+              choose={t("需要 AI 操作真实网页、完整验证用户流程，或者直接填写已授权的云文档时，就选 Browser。", "Choose Browser when AI must operate a real website, validate a full user journey, or fill an authorized cloud document.")}
               input={t("测试网址、操作步骤和正确结果；写飞书时，再提供已授权的云文档链接和内容要求。", "Provide the test URL, actions, and expected results. For Feishu, add an authorized document link and content requirements.")}
-              output={t("自动化测试记录、页面状态与截图，以及已经写入并校对好的飞书云文档。", "You get automated test logs, page states and screenshots, plus a completed and proofread Feishu cloud document.")}
+              action={t("自动打开页面、点击、输入、检查结果并截图；再打开飞书链接，填写、排版、保存和校对。", "AI opens, clicks, types, checks, and captures evidence, then opens Feishu to write, format, save, and proofread.")}
+              result={t("完整的网页测试证据，以及已经保存并校对好的飞书云文档。", "You get complete web-test evidence and a saved, proofread Feishu cloud document.")}
             />
-            <div className={revealClass(3, "browser-sequence")}>
-              <section className={revealClass(3, "browser-phase test-phase")}>
+            <div className={revealClass(4, "browser-sequence", 5)}>
+              <section className={revealClass(4, "browser-phase test-phase", 4)}>
                 <div className="phase-heading"><b>01</b><span><strong>{t("自动跑完整测试", "RUN THE FULL TEST AUTOMATICALLY")}</strong><small>{t("从打开页面到输出结果，整条流程自动完成", "From opening the page to reporting results, the entire flow runs automatically")}</small></span></div>
                 <div className="browser-spread">
                   <div className="browser-instruction"><Command language={language} title={t("Browser 测试提示词", "BROWSER TEST PROMPT")} onCopy={copy}>{t("@Browser 打开本地 3D 资产网站；搜索 PUMP-204，进入详情，旋转模型确认预览可用，提交审核，并确认状态从“草稿”变成“待审核”。", "@Browser Open the local 3D asset site. Search for PUMP-204, open its details, rotate the model to verify the preview, submit it for review, and confirm the status changes from Draft to Pending review.")}</Command><div className="test-log"><small>{t("AUTOMATION STEPS · 随滚轮推进", "AUTOMATION STEPS · ADVANCE WITH SCROLL")}</small><span className={testStatus!=="idle"?"done":"active"}>{t("1. 搜索 PUMP-204", "1. Search PUMP-204")}</span><span className={angle>=1?"done":""}>{t("2. 打开 3D 预览", "2. Open 3D preview")}</span><span className={angle>=2?"done":""}>{t("3. 旋转检查模型", "3. Rotate and inspect the model")}</span><span className={angle>=3?"done":""}>{t("4. 读取资产信息", "4. Read asset metadata")}</span><span className={testStatus==="passed"?"done":""}>{t("5. 确认结果正确", "5. Verify the expected result")}</span></div></div>
@@ -342,21 +412,22 @@ export default function Home() {
           <article className={`${lessonClass} compare-scene review-compare`}>
             <div className="section-no">04 · REVIEW VS OMX CODEREVIEW</div>
             <div className="statement"><h2>{t("OMX CodeReview：", "OMX CodeReview:")}<br /><span>{t("在合并代码前，请独立的 AI 审查组帮你挑问题。", "ask an independent AI review team to challenge the code before merge.")}</span></h2><p>{t("它会重点检查有没有 Bug、安全风险、性能问题和缺少的测试，并告诉你是否适合合并。", "It looks for bugs, security risks, performance issues, and missing tests, then tells you whether the change is ready to merge.")}</p></div>
-            <Capability
+            <BeginnerPath
               language={language}
-              className={revealClass(1)}
+              className={revealClass(1, "", 5)}
               revealStep={revealStep}
-              purpose={t("在代码合并前，帮你找出自己容易忽略的 Bug、风险和设计问题。", "Find bugs, risks, and design problems that are easy to miss before code is merged.")}
-              when={t("功能已经做完准备合并，或者这次改动比较重要时。", "Use it when a feature is ready to merge or the change is important.")}
+              problem={t("代码是自己写的，很容易沿着原来的思路再看一遍，依然漏掉同一个问题。", "When you review your own code, you often follow the same reasoning and miss the same problem again.")}
+              choose={t("功能准备合并，或改动涉及安全、数据和整体设计时，就让 OMX CodeReview 独立检查。", "Choose OMX CodeReview before merge or when a change affects security, data, or the overall design.")}
               input={t("这次改了什么、原始需求、重要限制和已经跑过的测试。", "Provide what changed, the original requirement, important constraints, and tests already run.")}
-              output={t("问题在哪里、严重不严重、怎样修改，以及是否建议合并。", "You get issue locations, severity, recommended fixes, and a merge recommendation.")}
+              action={t("分别检查代码细节、测试和整体设计，再把发现按严重程度整理出来。", "Independent reviewers inspect code, tests, and overall design, then rank findings by severity.")}
+              result={t("问题位置、严重程度、修改建议，以及“可以合并”或“需要修改”的结论。", "You get issue locations, severity, fix guidance, and a clear merge-or-revise verdict.")}
             />
-            <div className={revealClass(3, "comparison")}>
+            <div className={revealClass(4, "comparison")}>
               <div className="compare-card native"><div className="compare-title"><span>{t("Codex 快速入口", "QUICK CODEX ENTRY")}</span><h3>Review</h3></div><p>{t("快速检查一个文件或一小段改动，找出比较明显的问题。", "Quickly inspect one file or a small change and catch obvious issues.")}</p><Command language={language} title={t("小改动案例", "SMALL CHANGE EXAMPLE")} onCopy={copy}>{t("/review 检查本次 3D 文件上传逻辑，重点看文件检查、权限、出错处理和测试。", "/review Inspect this 3D file-upload change, focusing on validation, permissions, error handling, and tests.")}</Command><ul><li>{t("速度快", "Fast")}</li><li>{t("适合正在开发的小改动", "Good for small changes in progress")}</li><li>{t("只检查你这次交给它的内容", "Reviews only the scope you provide")}</li></ul><div className="fit">{t("适合：边写边检查", "BEST FOR: REVIEW WHILE CODING")}</div></div>
               <div className="versus">VS</div>
-              <div className="compare-card recommended"><div className="recommended-badge">{t("合并前推荐", "RECOMMENDED BEFORE MERGE")}</div><div className="compare-title"><span>Oh My Codex</span><h3>OMX CodeReview</h3></div><p>{t("由两组 AI 分别检查代码细节和整体设计，减少同一种思路反复看漏问题。", "Two AI review groups inspect code details and overall design independently, reducing blind spots from a single line of thinking.")}</p><Command language={language} title={t("重要改动案例", "IMPORTANT CHANGE EXAMPLE")} onCopy={copy}>{t("@CodeReview 检查 3D 资产上传与转换功能：有没有安全问题、功能错误、速度问题，以及遗漏的测试。", "@CodeReview Check the 3D asset upload and conversion feature for security problems, functional errors, performance issues, and missing tests.")}</Command><ul><li>{t("第一组检查代码和测试", "One group checks code and tests")}</li><li>{t("第二组检查整体设计是否合理", "Another checks the overall design")}</li><li>{t("最后给出“可以合并”或“需要修改”", "The final verdict is merge or revise")}</li></ul><div className="fit strong">{t("适合：重要功能和正式合并", "BEST FOR: IMPORTANT FEATURES AND FORMAL MERGES")}</div></div>
+              <div className="compare-card recommended"><div className="recommended-badge">{t("合并前推荐", "RECOMMENDED BEFORE MERGE")}</div><div className="compare-title"><span>Oh My Codex</span><h3>OMX CodeReview</h3></div><p>{t("由两组 AI 分别检查代码细节和整体设计，减少同一种思路反复看漏问题。", "Two AI review groups inspect code details and overall design independently, reducing blind spots from a single line of thinking.")}</p><Command language={language} title={t("重要改动案例", "IMPORTANT CHANGE EXAMPLE")} onCopy={copy}>{t("@CodeReview 检查 3D 资产上传与转换功能：有没有安全问题、功能错误、速度问题，以及遗漏的测试。", "@CodeReview Check the 3D asset upload and conversion feature for security problems, functional errors, performance issues, and missing tests.")}</Command><div className="review-lanes" role="img" aria-label={t("代码审查与架构审查两条独立通道汇合为最终合并结论", "Independent code and architecture review lanes converge on the final merge verdict")}><div><b>{t("代码审查", "CODE REVIEW")}</b><span>{t("Bug · 安全 · 测试", "Bugs · Security · Tests")}</span></div><div><b>{t("架构审查", "ARCHITECTURE")}</b><span>{t("边界 · 设计 · 长期风险", "Boundaries · Design · Long-term risk")}</span></div><i>↘　↙</i><strong>{t("合并结论：通过 / 修改", "MERGE VERDICT: APPROVE / REVISE")}</strong></div><div className="fit strong">{t("适合：重要功能和正式合并", "BEST FOR: IMPORTANT FEATURES AND FORMAL MERGES")}</div></div>
             </div>
-            <div className={revealClass(4, "review-example")}><b>{t("发现一个严重问题：暂时不要合并", "CRITICAL ISSUE FOUND: DO NOT MERGE YET")}</b><span>{t("上传 ZIP 时可能把文件写到不该写的位置；超大文件还可能让服务器内存不够用。", "A ZIP upload may write files outside the allowed directory, while oversized files may exhaust server memory.")}</span><em>{t("问题位置：api/assets/upload.ts 第 71 行 · 建议先修改", "Location: api/assets/upload.ts line 71 · Fix before merge")}</em></div>
+            <div className={revealClass(5, "review-example")}><b>{t("发现一个严重问题：暂时不要合并", "CRITICAL ISSUE FOUND: DO NOT MERGE YET")}</b><span>{t("上传 ZIP 时可能把文件写到不该写的位置；超大文件还可能让服务器内存不够用。", "A ZIP upload may write files outside the allowed directory, while oversized files may exhaust server memory.")}</span><em>{t("问题位置：api/assets/upload.ts 第 71 行 · 建议先修改", "Location: api/assets/upload.ts line 71 · Fix before merge")}</em></div>
           </article>
         )}
 
@@ -364,56 +435,48 @@ export default function Home() {
           <article className={`${lessonClass} debug-scene`}>
             <div className="section-no">05 · DEBUGGER</div>
             <div className="statement"><h2>{t("Debugger：", "Debugger:")}<br /><span>{t("先查清 Bug 为什么发生，再动手修改。", "find out why a bug happens before changing code.")}</span></h2><p>{t("它不会一上来就猜着改代码，而是先让问题稳定出现，再一步步缩小范围并确认真正原因。", "Instead of guessing at a fix, it first reproduces the problem, narrows the search step by step, and confirms the real cause.")}</p></div>
-            <Capability
+            <BeginnerPath
               language={language}
-              className={revealClass(1)}
+              className={revealClass(1, "", 5)}
               revealStep={revealStep}
-              purpose={t("不靠猜，按照证据一步步找到 Bug 的真正原因。", "Find the true cause of a bug step by step using evidence, not guesses.")}
-              when={t("Bug 反复出现、只在某些环境出现，或者已经修过几次仍然复发时。", "Use it when a bug recurs, appears only in certain environments, or returns after several fixes.")}
+              problem={t("只知道“模型变黑了”，却不知道哪段代码、哪个环境或哪份数据才是真正原因。", "You only know the model turned black, but not which code, environment, or data actually caused it.")}
+              choose={t("Bug 原因不清楚、只在某些环境出现，或者修过又复发时，就选 Debugger。", "Choose Debugger when the cause is unknown, the bug appears only in some environments, or it keeps returning.")}
               input={t("你看到了什么、正确结果应该是什么、相关日志和最近改动。", "Provide the observed behavior, expected behavior, relevant logs, and recent changes.")}
-              output={t("怎样稳定复现、真正原因、最小修改，以及防止再次发生的测试。", "You get reliable reproduction steps, the root cause, a minimal fix, and a regression test.")}
+              action={t("先稳定复现，再比较正常与失败环境，逐步缩小范围，最后用测试证明原因。", "AI reproduces the bug, compares working and failing environments, narrows the scope, and proves the cause with a test.")}
+              result={t("稳定复现方法、真正原因、最小修改，以及防止再次发生的测试。", "You get reliable reproduction steps, the root cause, the smallest fix, and a regression test.")}
             />
-            <div className={revealClass(3, "debug-spread")}>
+            <div className={revealClass(4, "debug-spread")}>
               <div><Command language={language} title={t("Debugger 提示词", "DEBUGGER PROMPT")} onCopy={copy}>{t("使用 debugger 智能体调查：WH-031 在 Windows 正常，但部署到 Linux 后 3D 预览变黑。先稳定重现，不要先改代码；说明问题经过、真正原因、最小修改和防止再次发生的测试。", "Use the debugger agent to investigate: WH-031 works on Windows, but its 3D preview turns black on Linux. Reproduce it reliably before changing code. Explain the evidence, root cause, smallest fix, and regression test.")}</Command><div className="debug-analogy"><b>{t("像侦探一样工作", "WORK LIKE A DETECTIVE")}</b><span>{t("现象：模型变黑", "Symptom: model turns black")}</span><span>{t("线索：只有 Linux 失败", "Clue: only Linux fails")}</span><span>{t("真正原因必须能用测试证明", "The cause must be proven by a test")}</span></div></div>
               <div className="timeline"><small>DEBUG TRACE · WH-031</small>{(language === "zh" ? [["T+00","读取 glTF 材质","baseColorTexture","ok"],["T+12","请求 BaseColor.PNG","Windows 200","ok"],["T+13","Linux 区分大小写","basecolor.png 404","bad"],["FIX","上传时规范化贴图名","重写 glTF URI","good"],["TEST","三种系统运行 30 组资产","30 / 30 通过","good"]] : [["T+00","Read glTF material","baseColorTexture","ok"],["T+12","Request BaseColor.PNG","Windows 200","ok"],["T+13","Linux is case-sensitive","basecolor.png 404","bad"],["FIX","Normalize texture names","Rewrite glTF URI","good"],["TEST","30 assets on 3 systems","30 / 30 passed","good"]]).map(([time,event,result,status])=><div key={time} className={status}><b>{time}</b><span>{event}</span><em>{result}</em></div>)}</div>
             </div>
-            <div className={revealClass(4, "debug-chain")}><span>{t("让问题再次出现", "Reproduce")}</span><i>→</i><span>{t("比较不同环境", "Compare environments")}</span><i>→</i><span>{t("确认真正原因", "Confirm root cause")}</span><i>→</i><span>{t("只改必要部分", "Make the smallest fix")}</span><i>→</i><b>{t("各个平台重新测试", "Retest every platform")}</b></div>
+            <div className={revealClass(5, "debug-chain")}><span>{t("让问题再次出现", "Reproduce")}</span><i>→</i><span>{t("比较不同环境", "Compare environments")}</span><i>→</i><span>{t("确认真正原因", "Confirm root cause")}</span><i>→</i><span>{t("只改必要部分", "Make the smallest fix")}</span><i>→</i><b>{t("各个平台重新测试", "Retest every platform")}</b></div>
           </article>
         )}
 
         {scene === 7 && (
           <article className={`${lessonClass} case-study-scene`}>
-            <div className="section-no">{t("06 · 这个页面就是案例", "06 · THIS PAGE IS THE CASE")}</div>
-            <div className="statement"><h2>{t("它不是虚构的 Demo，", "This is not a fictional demo,")}<br /><span>{t("而是五个技巧共同完成的真实项目。", "but a real project built with all five techniques.")}</span></h2><p>{t("最初的需求只是“做一个介绍 Codex 的 PPT”。经过持续规划、人工 Review、浏览器测试、安全审查和线上调试，最后才变成你正在看的交互页面。", "The original request was simply “make a Codex presentation.” Planning, human review, browser testing, security review, and production debugging turned it into the interactive page you are reading now.")}</p></div>
-            <div className={revealClass(1, "case-evolution")}>
-              <small>{t("真实需求如何一步步变化", "HOW THE REAL BRIEF EVOLVED")}</small>
-              <div>{(language === "zh" ? ["做一个 PPT", "动画更自然", "改成交互网页", "让小白看懂", "中英文 + 夜间模式", "发布到 GitHub Pages"] : ["Make a presentation", "Make motion feel natural", "Turn it into an interactive site", "Explain it for beginners", "Add bilingual + dark mode", "Publish to GitHub Pages"]).map((label, index) => <span key={label} className={revealStep >= Math.min(4, 1 + Math.floor(index / 2)) ? "active" : ""}><b>0{index + 1}</b>{label}</span>)}</div>
+            <div className="section-no">{t("06 · 这个网站是怎么做出来的", "06 · HOW THIS SITE WAS BUILT")}</div>
+            <div className="statement"><h2>{t("每遇到一个新问题，", "Each new problem called for")}<br /><span>{t("就选择一个最合适的 AI 能力。", "the AI capability that fit it best.")}</span></h2><p>{t("最初只是想做一个 Codex 分享。下面不是五个孤立功能，而是这个网站从需求、开发、测试、审查到上线排错的真实接力。", "The brief began as a Codex presentation. These are not five isolated features, but the real handoffs that took the site from requirements through development, testing, review, and production debugging.")}</p></div>
+            <div className={revealClass(1, "project-relay", 5)}>
+              <ol className="relay-track" aria-label={t("这个网站的五阶段 AI 开发接力", "The five-stage AI development relay for this site")}>{capabilityGuide.map((item, index) => { const step = index + 1; return <li key={item.command} className={`${revealStep >= step ? "revealed" : ""} ${revealStep === step ? "is-current" : revealStep > step ? "is-past" : ""}`} aria-current={revealStep === step ? "step" : undefined}><b>0{step}</b><span>{item.command}</span></li>; })}</ol>
+              <div className="relay-stage">{capabilityGuide.map((item, index) => { const step = index + 1; return <article key={item.command} className={`relay-panel ${revealStep === step ? "is-current" : ""}`} aria-hidden={revealStep !== step}><div className="relay-problem"><small>{t("遇到问题", "PROBLEM")}</small><strong>{item.storyProblem}</strong></div><i>→</i><div className="relay-command"><small>{t("选择命令", "CHOOSE")}</small><h3>{item.command}</h3></div><i>→</i><div className="relay-result"><small>{t("AI 动作与结果", "AI ACTION + RESULT")}</small><span>{item.storyAction}</span><b>✓ {item.storyResult}</b></div><p className="relay-handoff"><small>{t("交给下一阶段", "HANDOFF")}</small><strong>{item.handoff}</strong></p></article>; })}</div>
+              <span className="sr-only" aria-live="polite">{capabilityGuide[Math.max(0, revealStep - 1)]?.handoff ?? ""}</span>
             </div>
-            <div className={revealClass(2, "case-capabilities")}>
-              {(language === "zh" ? [
-                ["PLAN × Mermaid", "把零散意见重新整理成页面顺序和讲解流程。", "产物：可 Review 的章节结构"],
-                ["OMX UltraGoal", "持续完成设计、开发、动画、测试和发布。", "产物：从需求跑到线上交付"],
-                ["Browser", "检查滚轮、跨页、中英文、夜间模式和 125% 缩放。", "证据：页面与资源真实可用"],
-                ["OMX CodeReview", "扫描 31 个提交，检查私钥、Token、邮箱和依赖风险。", "结论：无密钥泄漏，留下加固建议"],
-                ["Debugger", "从 404 追到 Pages 发布源错误和 CI 锁文件差异。", "结果：修复后线上返回 200"]
-              ] : [
-                ["PLAN × Mermaid", "Turn scattered feedback into page order and a reviewable narrative flow.", "OUTPUT: A REVIEWABLE CHAPTER STRUCTURE"],
-                ["OMX UltraGoal", "Keep design, development, animation, testing, and publishing moving.", "OUTPUT: DELIVERY FROM BRIEF TO PRODUCTION"],
-                ["Browser", "Verify scrolling, transitions, language, dark mode, and 125% zoom.", "EVIDENCE: THE REAL PAGE AND ASSETS WORK"],
-                ["OMX CodeReview", "Scan 31 commits for keys, tokens, email exposure, and dependency risk.", "VERDICT: NO SECRET LEAK; HARDENING NOTES RECORDED"],
-                ["Debugger", "Trace a 404 to the Pages source and CI lockfile differences.", "RESULT: PRODUCTION RETURNS HTTP 200"]
-              ]).map(([name, action, evidence], index) => <div key={name} className={revealStep >= (index < 2 ? 2 : index < 4 ? 3 : 4) ? "revealed" : ""}><b>0{index + 1}</b><strong>{name}</strong><p>{action}</p><em>{evidence}</em></div>)}
-            </div>
-            <div className={revealClass(4, "case-proof")}><span className="error">404 · {t("发布成 README 页面", "README PUBLISHED AS JEKYLL")}</span><i>→</i><span>{t("切换到 GitHub Actions", "SWITCH TO GITHUB ACTIONS")}</span><i>→</i><b>200 · Codex小技巧</b></div>
           </article>
         )}
 
         {scene === 8 && (
           <article className={`${lessonClass} summary-scene`}>
             <div className="section-no">{t("07 · 现在你会选了", "07 · NOW YOU CAN CHOOSE")}</div>
-            <div className="summary-title"><h2>{t("五个小技巧，", "Five practical techniques,")}<br /><span>{t("组成一条完整的 AI 开发流程。", "one complete AI development workflow.")}</span></h2><p>{t("先让人看懂和确认，再让 AI 执行，最后用真实证据检查结果。", "First make the work understandable and reviewable, then let AI execute, and finally verify the result with real evidence.")}</p></div>
-            <div className={revealClass(1, "summary-list")}>{(language === "zh" ? [["PLAN x 流程图（Mermaid）","计划太长，不容易发现 AI 理解错了哪里","最后得到：文字 Plan、多张配套流程图和人工确认后的规则"],["OMX UltraGoal","大项目跨很多阶段，容易中断或漏验收","最后得到：可恢复的执行进度，以及通过测试和 Review 的完整产物"],["Browser","测试网页和写飞书文档太重复","最后得到：完整自动化测试证据，以及已编写好的飞书云文档"],["OMX CodeReview","自己写的代码容易看漏问题","最后得到：问题位置、修改建议和是否合并的结论"],["Debugger","只看到了 Bug，却不知道真正原因","最后得到：复现方法、真正原因、修改和防复发测试"]] : [["PLAN x Flowchart (Mermaid)","Long plans hide where AI misunderstood the work","Result: a written Plan, matching diagrams, and human-approved rules"],["OMX UltraGoal","Long projects are easily interrupted or under-verified","Result: recoverable progress and a complete deliverable that passed tests and review"],["Browser","Web testing and Feishu documentation are repetitive","Result: full automation evidence and a completed Feishu document"],["OMX CodeReview","It is easy to miss problems in your own code","Result: issue locations, fix guidance, and a merge verdict"],["Debugger","You see the bug but do not know the true cause","Result: reproduction, root cause, fix, and regression test"]]).map(([name,why,deliverable],i)=><div key={name}><b>0{i+1}</b><span><strong>{name}</strong><small>{why}</small></span><p>{deliverable}</p></div>)}</div>
-            <div className={revealClass(2, "closing")}><b>{t("给小白的一句话", "THE BEGINNER VERSION")}</b><span>{t("先让 AI 把系统讲明白，再让 UltraGoal 自动做；每一步都要求留下可以检查的证据。", "Ask AI to explain the system first, let UltraGoal execute second, and require checkable evidence at every step.")}</span></div>
+            <div className="summary-title"><h2>{t("先说你卡在哪里，", "Start with where you are stuck,")}<br /><span>{t("就知道该选哪个命令。", "and the right command becomes obvious.")}</span></h2><p>{t("不需要记住所有专业名词。先判断自己面对的是计划、大任务、网页操作、合并检查，还是一个原因不明的 Bug。", "You do not need to memorize every technical term. Decide whether you face planning, a long project, browser work, a merge check, or a bug with an unknown cause.")}</p></div>
+            <div className={revealClass(1, "decision-map", 5)}>
+              <div className="decision-hub"><small>{t("先问自己", "ASK YOURSELF")}</small><strong>{t("我现在卡在哪里？", "Where am I stuck?")}</strong><span>{t("每滚动一步，排除一种情况", "Each step reveals one choice")}</span></div>
+              <div className="decision-branches">{capabilityGuide.map(({ choiceProblem: problem, command, choiceResult: result }, index) => {
+                const step = index + 1;
+                return <div key={command} className={`decision-branch ${revealStep >= step ? "revealed" : ""} ${revealStep === step ? "is-current" : revealStep > step ? "is-past" : ""}`}><span>{problem}</span><i>→</i><strong>{command}</strong><em>{result}</em></div>;
+              })}</div>
+            </div>
+            <div className={revealClass(5, "closing")}><b>{t("记住这一句", "REMEMBER THIS")}</b><span>{t("先说清楚你遇到的问题，再选择最合适的命令；最后一定检查 AI 留下的产物和证据。", "Describe the problem first, choose the capability that fits it, and always inspect the artifact and evidence AI leaves behind.")}</span></div>
           </article>
         )}
 
@@ -424,7 +487,7 @@ export default function Home() {
             <div className={revealClass(1, "omx-command-groups")}>
               {(language === "zh" ? [["先想清楚",[["$deep-interview","通过提问把模糊需求问清楚"],["$ralplan","让多个角色共同检查并完善计划"]]],["自动执行",[["$autopilot","串起规划、执行、Review 和 QA 的完整闭环"],["$team","让多个智能体并行处理不同子任务"]]],["质量提升",[["$ultraqa","生成更刁钻的端到端场景并反复验证"],["$performance-goal","持续定位和优化性能问题"]]],["项目维护",[["$wiki","把项目知识保存成可搜索的长期文档"],["$doctor","检查 Oh My Codex 是否安装和运行正常"]]]] : [["CLARIFY FIRST",[["$deep-interview","Clarify ambiguous requirements through focused questions"],["$ralplan","Have multiple roles challenge and improve the plan"]]],["AUTOMATE EXECUTION",[["$autopilot","Connect planning, execution, review, and QA into one loop"],["$team","Run different subtasks with multiple agents in parallel"]]],["RAISE QUALITY",[["$ultraqa","Generate hostile end-to-end scenarios and verify repeatedly"],["$performance-goal","Continuously diagnose and optimize performance"]]],["MAINTAIN THE PROJECT",[["$wiki","Store project knowledge as searchable long-term documentation"],["$doctor","Verify that Oh My Codex is installed and healthy"]]]]).map(([group,items])=><section key={group as string}><h3>{group as string}</h3>{(items as string[][]).map(([command,description])=><div key={command}><code>{command}</code><span>{description}</span></div>)}</section>)}
             </div>
-            <div className={revealClass(2, "recommendation coral")}><b>{t("新手建议", "START HERE")}</b><span>{t("先从 PLAN x 流程图、UltraGoal 和 OMX CodeReview 开始；任务更复杂后，再尝试 Autopilot、Team 与 UltraQA。", "Start with PLAN x Flowchart, UltraGoal, and OMX CodeReview. Try Autopilot, Team, and UltraQA when the work becomes more complex.")}</span><button className={revealClass(3, "restart")} onClick={()=>go(0)}>{t("从头再看一次", "Start again")} ↺</button></div>
+            <div className={revealClass(2, "recommendation coral", 3)}><b>{t("新手建议", "START HERE")}</b><span>{t("先从 PLAN x 流程图、UltraGoal 和 OMX CodeReview 开始；任务更复杂后，再尝试 Autopilot、Team 与 UltraQA。", "Start with PLAN x Flowchart, UltraGoal, and OMX CodeReview. Try Autopilot, Team, and UltraQA when the work becomes more complex.")}</span><button className={revealClass(3, "restart")} onClick={()=>go(0)}>{t("从头再看一次", "Start again")} ↺</button></div>
             <div className={revealClass(3, "omx-intro")}><div><small>{t("官方项目地址", "OFFICIAL PROJECT")}</small><a href="https://github.com/Yeachan-Heo/oh-my-codex" target="_blank" rel="noreferrer">github.com/Yeachan-Heo/oh-my-codex ↗</a></div><p><b>{t("说明", "NOTE")}</b><span>{t("本页链接采用 Oh My Codex 官方 GitHub 项目，便于继续查看安装方式、完整命令和更新说明。", "This links to the official Oh My Codex GitHub project for installation, the complete command list, and release notes.")}</span></p></div>
           </article>
         )}
